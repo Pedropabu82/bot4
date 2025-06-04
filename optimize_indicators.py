@@ -1,3 +1,5 @@
+"""Utility for optimizing indicator parameters using backtests."""
+
 import json
 import logging
 import pandas as pd

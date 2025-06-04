@@ -1,3 +1,5 @@
+"""Retrain the XGBoost model automatically from logged trades."""
+
 import pandas as pd
 import numpy as np
 import ccxt
@@ -36,7 +38,7 @@ def extract_features(df):
     features['volume'] = df['volume']
     return features.dropna().reset_index(drop=True)
 
-def train_from_log(trade_log='trade_log.csv'):
+def train_from_log(trade_log='data/trade_log.csv'):
     if not os.path.exists(trade_log):
         print(f"Arquivo {trade_log} não encontrado.")
         return

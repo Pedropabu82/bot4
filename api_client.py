@@ -1,3 +1,5 @@
+"""Asynchronous Binance API client wrapper using ccxt."""
+
 import ccxt.async_support as ccxt
 import pandas as pd
 import logging

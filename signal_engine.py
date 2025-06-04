@@ -1,3 +1,5 @@
+"""Evaluate indicator data or a trained model to generate trading signals."""
+
 import joblib
 import os
 import logging
