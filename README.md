@@ -36,3 +36,7 @@ Modes available via the `mode` key in `config.json`:
 
 Example trade logs are stored in the `data/` directory. The scripts
 expect `data/trade_log.csv` to exist and will append new entries to it.
+
+## License
+
+This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.
