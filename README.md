@@ -21,9 +21,24 @@ Edit `config.json` with your API credentials then run:
 python main.py
 ```
 
-The keys can also be provided via the environment variables
-`BINANCE_API_KEY` and `BINANCE_API_SECRET` which override values in
-`config.json`.
+
+## Configuration
+
+Edit `config.json` for exchange credentials and strategy options. Keys can
+also be supplied through the `BINANCE_API_KEY` and `BINANCE_API_SECRET`
+environment variables which override the values from `config.json`. Example:
+
+```bash
+export BINANCE_API_KEY=your_key
+export BINANCE_API_SECRET=your_secret
+python main.py
+```
+
+Relevant settings:
+
+* `mode` - choose `live`, `train` or `backtest`
+* `min_ai_confidence` - probability threshold (0-1) required by the model
+  before placing an order
 
 Modes available via the `mode` key in `config.json`:
 
@@ -31,10 +46,6 @@ Modes available via the `mode` key in `config.json`:
 * `train` - update the model using logged trades
 * `backtest` - replay trades to evaluate performance
 
-### New options
-
-* `min_ai_confidence` - probability threshold (0-1) required by the AI model to allow an entry
-* Spread and depth are automatically checked before orders to avoid poor fills
 
 ## Sample data
 
