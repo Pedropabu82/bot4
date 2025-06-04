@@ -3,6 +3,7 @@
 import ccxt.async_support as ccxt
 import asyncio
 import logging
+import os
 
 logger = logging.getLogger(__name__)
 
@@ -23,9 +24,11 @@ class ExchangeClient:
         if not ex_class:
             raise ValueError(f"Exchange '{config['name']}' não suportada.")
 
+        api_key = os.getenv("BINANCE_API_KEY", config.get("api_key"))
+        api_secret = os.getenv("BINANCE_API_SECRET", config.get("api_secret"))
         exchange = ex_class({
-            "apiKey": config["api_key"],
-            "secret": config["api_secret"],
+            "apiKey": api_key,
+            "secret": api_secret,
             "enableRateLimit": True,
             "asyncio_loop": asyncio.get_event_loop(),
             "options": {"defaultType": "future"}

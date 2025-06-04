@@ -21,6 +21,10 @@ Edit `config.json` with your API credentials then run:
 python main.py
 ```
 
+The keys can also be provided via the environment variables
+`BINANCE_API_KEY` and `BINANCE_API_SECRET` which override values in
+`config.json`.
+
 Modes available via the `mode` key in `config.json`:
 
 * `live` - run the strategy in real time
@@ -36,3 +40,19 @@ Modes available via the `mode` key in `config.json`:
 
 Example trade logs are stored in the `data/` directory. The scripts
 expect `data/trade_log.csv` to exist and will append new entries to it.
+
+## Optional scripts
+
+Several helper scripts are available for data collection and model
+management:
+
+* `auto_retrain.py` - automatically retrains `model_xgb.pkl` using the
+  trade log. Run `python auto_retrain.py` after accumulating new trade
+  data.
+* `train_model.py` - performs cross validation on the trade log and saves
+  a new model. Usage: `python train_model.py`.
+* `fetch_ohlcv.py` - downloads recent OHLCV candles for popular pairs and
+  saves them under `data/`. Execute `python fetch_ohlcv.py`.
+* `websocket_client.py` - example real-time feed that falls back to REST
+  when the WebSocket disconnects. Run `python websocket_client.py` to see
+  the stream in action.

@@ -4,15 +4,18 @@ import ccxt.async_support as ccxt
 import pandas as pd
 import logging
 import asyncio
+import os
 
 logger = logging.getLogger(__name__)
 
 class BinanceClient:
     def __init__(self, config):
         self.config = config
+        api_key = os.getenv('BINANCE_API_KEY', config.get('api_key'))
+        api_secret = os.getenv('BINANCE_API_SECRET', config.get('api_secret'))
         self.exchange = ccxt.binance({
-            'apiKey': config['api_key'],
-            'secret': config['api_secret'],
+            'apiKey': api_key,
+            'secret': api_secret,
             'enableRateLimit': True,
             'asyncio_loop': asyncio.get_event_loop(),
             'options': {
