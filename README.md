@@ -6,6 +6,7 @@
 [ccxt](https://github.com/ccxt/ccxt). It supports live trading on Binance
 Futures, simple backtesting and training of an XGBoost model for generating
 signals.
+Sample logs and a pre-trained model are stored in the `sample-data/` directory.
 
 ## Installation
 
@@ -49,14 +50,14 @@ To run backtests or train the strategy, set `mode` in `config.json` to `"backtes
 
 Additional utilities:
 - `fetch_ohlcv.py` – download historical candles to the `data/` directory.
-- `train_model.py` – train the XGBoost model from `trade_log.csv`.
+- `train_model.py` – train the XGBoost model from `sample-data/trade_log.csv`.
 - `auto_retrain.py` – automatically retrain based on log data.
 
 ## Scripts
 
 - **`main.py`** – entry point that loads the config and launches the bot in live trading, backtest or training mode.
 - **`live_strategy.py`** – implements the moving‑average based trading logic.
-- **`backtest_engine.py`** – evaluates past trades stored in `trade_log.csv`.
+- **`backtest_engine.py`** – evaluates past trades stored in `sample-data/trade_log.csv`.
 - **`signal_engine.py`** – wrapper around the ML model for generating signals.
 - **`websocket_client.py`** – handles real‑time price streams from Binance.
 - **`exchange_client.py`** – simple async wrapper around ccxt exchange objects.
