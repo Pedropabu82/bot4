@@ -6,16 +6,10 @@ import logging
 from api_client import BinanceClient
 from live_strategy import LiveMAStrategy
 from backtest_engine import simulate_trades
+from log_utils import configure_logging
 
-# Configurar logging para console e arquivo
-logging.basicConfig(
-    level=logging.DEBUG,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler('bot.log'),
-        logging.StreamHandler()
-    ]
-)
+# Configure logging for console and file
+configure_logging(logging.DEBUG)
 
 async def main():
     try:

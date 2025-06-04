@@ -5,7 +5,11 @@ import numpy as np
 import xgboost as xgb
 import talib
 import joblib
+import logging
 from sklearn.model_selection import StratifiedKFold, cross_val_score
+from log_utils import configure_logging
+
+logger = logging.getLogger(__name__)
 
 
 def extract_features(df):
@@ -55,10 +59,10 @@ def train_model(log_path='data/trade_log.csv', model_output='model_xgb.pkl'):
                 X_list.append(feats.iloc[-1])
                 y_list.append(1 if row['result'].lower() == 'win' else 0)
             except Exception as e:
-                print(f"Erro ao processar linha: {e}")
+                logger.error(f"Erro ao processar linha: {e}")
 
         if not X_list:
-            print("Nenhum dado válido para treinar.")
+            logger.error("Nenhum dado válido para treinar.")
             return
 
         X = pd.DataFrame(X_list)
@@ -70,17 +74,18 @@ def train_model(log_path='data/trade_log.csv', model_output='model_xgb.pkl'):
         roc_scores = cross_val_score(model, X, y, cv=cv, scoring='roc_auc')
         acc_scores = cross_val_score(model, X, y, cv=cv, scoring='accuracy')
 
-        print("--- Validação Cruzada ---")
-        print(f"ROC AUC: {roc_scores.mean():.4f} (+/- {roc_scores.std():.4f})")
-        print(f"Accuracy: {acc_scores.mean():.4f} (+/- {acc_scores.std():.4f})")
+        logger.info("--- Validação Cruzada ---")
+        logger.info(f"ROC AUC: {roc_scores.mean():.4f} (+/- {roc_scores.std():.4f})")
+        logger.info(f"Accuracy: {acc_scores.mean():.4f} (+/- {acc_scores.std():.4f})")
 
         model.fit(X, y)
         joblib.dump(model, model_output)
-        print(f"Modelo treinado e salvo em: {model_output}")
+        logger.info(f"Modelo treinado e salvo em: {model_output}")
 
     except Exception as e:
-        print(f"Erro ao treinar modelo: {e}")
+        logger.error(f"Erro ao treinar modelo: {e}")
 
 
 if __name__ == '__main__':
+    configure_logging()
     train_model()

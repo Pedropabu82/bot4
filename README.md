@@ -50,6 +50,7 @@ Modes available via the `mode` key in `config.json`:
 
 Example trade logs are stored in the `data/` directory. The scripts
 expect `data/trade_log.csv` to exist and will append new entries to it.
+Backtests require data in this file; if it's empty the results will also be empty.
 
 ## Optional scripts
 
@@ -60,3 +61,8 @@ management:
 * `train_model.py` - performs cross validation on the trade log and saves a new model. Usage: `python train_model.py`.
 * `fetch_ohlcv.py` - downloads recent OHLCV candles for popular pairs and stores them under `data/`. Execute `python fetch_ohlcv.py`.
 * `websocket_client.py` - example real-time feed that falls back to REST when the WebSocket disconnects. Run `python websocket_client.py` to see the stream.
+
+## Logging
+
+All utilities use Python's `logging` module. When you run `main.py` or any helper script,
+messages are written to `bot.log` and echoed to the console.

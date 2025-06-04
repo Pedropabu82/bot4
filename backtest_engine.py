@@ -2,6 +2,10 @@
 
 import pandas as pd
 import numpy as np
+import logging
+from log_utils import configure_logging
+
+logger = logging.getLogger(__name__)
 
 # Simples motor de backtest baseado nos logs + sinais simulados
 
@@ -60,7 +64,8 @@ def calc_sharpe(equity_curve, risk_free_rate=0):
     return (np.mean(excess_returns) / np.std(excess_returns)) * np.sqrt(252)
 
 if __name__ == '__main__':
+    configure_logging()
     results, equity = simulate_trades()
-    print("\n--- Backtest Results ---")
+    logger.info("\n--- Backtest Results ---")
     for k, v in results.items():
-        print(f"{k}: {v}")
+        logger.info(f"{k}: {v}")
