@@ -8,6 +8,7 @@ import talib
 from datetime import datetime, timedelta
 import traceback
 from auto_retrain import train_from_log
+from signal_engine import SignalEngine
 
 logger = logging.getLogger(__name__)
 
@@ -35,6 +36,8 @@ class LiveMAStrategy:
         self.max_trades = config.get('max_trades_per_day', 5)
         self.daily_trades = {symbol: [] for symbol in self.symbols}
         self.min_qty = {'BTCUSDT': 0.001, 'ETHUSDT': 0.01, 'SOLUSDT': 0.1}
+        self.signal_engine = SignalEngine()
+        self.min_ai_confidence = config.get('min_ai_confidence', 0.5)
         logger.info(f"Initialized with symbols: {self.symbols}")
 
     async def initialize(self):
@@ -169,13 +172,68 @@ class LiveMAStrategy:
         except Exception as e:
             logger.error(f"Sync error {symbol}: {e}\n{traceback.format_exc()}")
 
+    async def validate_liquidity(self, symbol, qty):
+        """Check spread and depth before sending an order."""
+        try:
+            ob = await self.client.exchange.fetch_order_book(symbol, limit=5)
+            bid = float(ob['bids'][0][0])
+            ask = float(ob['asks'][0][0])
+            spread = (ask - bid) / bid
+            if spread > 0.002:
+                logger.warning(f"High spread {spread*100:.2f}% for {symbol}")
+                return False
+            depth = sum(float(b[1]) for b in ob['bids'])
+            if depth < qty * 3:
+                logger.warning(f"Low liquidity {depth} for {symbol}")
+                return False
+            return True
+        except Exception as e:
+            logger.error(f"Liquidity check failed for {symbol}: {e}")
+            return False
+
+    def ai_accepts_trade(self, symbol, timeframe):
+        """Evaluate entry signal using the AI model."""
+        try:
+            df = self.data[symbol].get(timeframe, pd.DataFrame())
+            if df.empty or len(df) < 30:
+                return True
+            ema = talib.EMA(df['close'], timeperiod=12).iloc[-1]
+            macd, _, _ = talib.MACD(df['close'], 12, 26, 9)
+            macd_val = macd.iloc[-1]
+            rsi = talib.RSI(df['close'], 14).iloc[-1]
+            adx = talib.ADX(df['high'], df['low'], df['close'], 14).iloc[-1]
+            obv = talib.OBV(df['close'], df['volume']).iloc[-1]
+            atr = talib.ATR(df['high'], df['low'], df['close'], 14).iloc[-1]
+            volume = df['volume'].iloc[-1]
+            features = {
+                'ema': ema,
+                'macd': macd_val,
+                'rsi': rsi,
+                'adx': adx,
+                'obv': obv,
+                'atr': atr,
+                'volume': volume,
+            }
+            result = self.signal_engine.get_signal_for_timeframe(features, symbol=symbol, timeframe=timeframe)
+            return result['ok'] and result['confidence'] >= self.min_ai_confidence
+        except Exception as e:
+            logger.error(f"AI check failed for {symbol}: {e}")
+            return True
+
     async def open_position(self,symbol,side,price,qty,tf):
         await self.sync_position(symbol)
-        if self.position_side[symbol] or await self.has_open(symbol): return
+        if self.position_side[symbol] or await self.has_open(symbol):
+            return
+        if not await self.validate_liquidity(symbol, qty):
+            return
+        if not self.ai_accepts_trade(symbol, tf):
+            logger.info(f"AI rejected trade for {symbol} {tf}")
+            return
         ob=await self.client.exchange.fetch_order_book(symbol,limit=5)
         bid,ask=float(ob['bids'][0][0]),float(ob['asks'][0][0])
         lim=round(bid+(ask-bid)*0.3,self.price_precision[symbol]) if side=='long' else round(ask-(ask-bid)*0.3,self.price_precision[symbol])
-        if qty<self.min_qty.get(symbol,0): return
+        if qty<self.min_qty.get(symbol,0):
+            return
         try:
             order=await self.client.exchange.create_limit_order(symbol,'buy' if side=='long' else 'sell',qty,lim,{'postOnly':True})
             for _ in range(3):
