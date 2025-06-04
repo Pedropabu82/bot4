@@ -1,3 +1,9 @@
+"""Retrain XGBoost model using recent trade logs.
+
+The script fetches historical candles, extracts features and updates
+``model_xgb.pkl``. Run ``python auto_retrain.py`` to generate a new model.
+"""
+
 import pandas as pd
 import numpy as np
 import ccxt

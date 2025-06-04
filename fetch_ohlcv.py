@@ -1,3 +1,10 @@
+"""Download OHLCV data from Binance Futures and store CSV files.
+
+Run the script directly to fetch a month of candles for popular symbols:
+
+``python fetch_ohlcv.py``
+"""
+
 import ccxt.async_support as ccxt
 import pandas as pd
 import asyncio

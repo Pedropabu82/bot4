@@ -1,3 +1,9 @@
+"""Utility to search for optimal indicator settings.
+
+``IndicatorOptimizer`` runs backtests with different parameter combinations
+and writes the best configuration back to ``config.json``.
+"""
+
 import logging
 import pandas as pd
 from itertools import product

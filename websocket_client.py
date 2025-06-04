@@ -1,3 +1,10 @@
+"""Real-time market data streaming with REST fallback.
+
+`start_streams` opens Binance WebSocket connections and feeds data to a
+strategy instance. If connections fail, historical candles are fetched via
+the REST API.
+"""
+
 import asyncio
 import json
 import websockets

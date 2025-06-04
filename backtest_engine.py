@@ -1,3 +1,9 @@
+"""Simple backtesting utilities based on recorded trade logs.
+
+Calling ``simulate_trades()`` reads ``trade_log.csv`` and reports metrics
+such as win rate and drawdown.
+"""
+
 import pandas as pd
 import numpy as np
 import os

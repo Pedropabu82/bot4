@@ -1,3 +1,15 @@
+"""Async wrapper for Binance Futures REST API.
+
+This client simplifies fetching candle data and account information.
+Typical usage:
+
+```
+cfg = json.load(open('config.json'))
+client = BinanceClient(cfg)
+df = await client.fetch_candles('BTCUSDT', '1h')
+```
+"""
+
 import ccxt.async_support as ccxt
 import pandas as pd
 import logging

@@ -1,3 +1,9 @@
+"""Train an XGBoost model from historical trade data.
+
+Execute ``python train_model.py`` to read ``trade_log.csv`` and output
+``model_xgb.pkl`` with cross-validation statistics.
+"""
+
 import pandas as pd
 import numpy as np
 import xgboost as xgb

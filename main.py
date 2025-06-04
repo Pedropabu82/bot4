@@ -1,3 +1,9 @@
+"""Entry point for running the trading bot.
+
+Loads ``config.json`` and starts the strategy in live, train or backtest
+mode depending on configuration.
+"""
+
 import asyncio
 import json
 import logging

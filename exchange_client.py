@@ -1,3 +1,9 @@
+"""Generic async client for multiple exchanges.
+
+Supports Binance and Phemex with an interface similar to ``BinanceClient``.
+Instantiate with a config dictionary containing credentials.
+"""
+
 import ccxt.async_support as ccxt
 import asyncio
 import logging

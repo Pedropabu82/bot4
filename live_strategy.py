@@ -1,3 +1,10 @@
+"""Multi-timeframe trading strategy for Binance Futures.
+
+`LiveMAStrategy` loads historical candles, calculates indicators and can
+execute trades or simulate training/backtests. Instantiate with a
+`BinanceClient` and call ``initialize`` followed by ``run``.
+"""
+
 import pandas as pd
 import numpy as np
 import ccxt.async_support as ccxt

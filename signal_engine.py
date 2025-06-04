@@ -1,3 +1,9 @@
+"""Machine learning helper that scores trade setups.
+
+The engine loads ``model_xgb.pkl`` when available and provides
+``get_signal_for_timeframe`` to compute probabilities.
+"""
+
 import joblib
 import os
 import logging
