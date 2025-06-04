@@ -6,6 +6,9 @@ import websockets
 import logging
 import pandas as pd
 import ccxt.async_support as ccxt
+from api_client import BinanceClient
+from live_strategy import LiveMAStrategy
+from log_utils import configure_logging
 
 logger = logging.getLogger(__name__)
 
@@ -121,3 +124,20 @@ async def start_streams(symbols, timeframes, strategy, valid_timeframes, config)
         reconnect_delay = min(reconnect_delay * 2, max_reconnect_delay)
 
     await exchange.close()
+
+
+if __name__ == "__main__":
+    configure_logging()
+    with open("config.json", "r") as f:
+        cfg = json.load(f)
+    client = BinanceClient(cfg)
+    strategy = LiveMAStrategy(client, cfg)
+    asyncio.run(
+        start_streams(
+            strategy.symbols,
+            strategy.timeframes,
+            strategy,
+            strategy.timeframes,
+            cfg,
+        )
+    )
