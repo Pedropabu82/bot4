@@ -7,8 +7,28 @@ import numpy as np
 
 def simulate_trades(trade_log_path='data/trade_log.csv', initial_balance=1000):
     df = pd.read_csv(trade_log_path)
+    if df.empty:
+        metrics = {
+            'Total Trades': 0,
+            'Win Rate': 0,
+            'Final Balance': round(initial_balance, 2),
+            'Max Drawdown': 0,
+            'Sharpe Ratio': 0,
+        }
+        return metrics, []
+
     df = df[df['type'] == 'ENTRY']
     df = df.sort_values('timestamp')
+
+    if df.empty:
+        metrics = {
+            'Total Trades': 0,
+            'Win Rate': 0,
+            'Final Balance': round(initial_balance, 2),
+            'Max Drawdown': 0,
+            'Sharpe Ratio': 0,
+        }
+        return metrics, []
 
     balance = initial_balance
     equity_curve = []
