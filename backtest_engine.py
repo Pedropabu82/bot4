@@ -2,10 +2,11 @@ import pandas as pd
 import numpy as np
 import os
 from sklearn.metrics import accuracy_score, precision_score, recall_score
+DATA_DIR = os.path.join(os.path.dirname(__file__), "sample-data")
 
 # Simples motor de backtest baseado nos logs + sinais simulados
 
-def simulate_trades(trade_log_path='trade_log.csv', initial_balance=1000):
+def simulate_trades(trade_log_path=os.path.join(DATA_DIR, "trade_log.csv"), initial_balance=1000):
     df = pd.read_csv(trade_log_path)
     df = df[df['type'] == 'ENTRY']
     df = df.sort_values('timestamp')

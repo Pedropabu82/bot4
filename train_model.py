@@ -4,7 +4,9 @@ import xgboost as xgb
 import talib
 import joblib
 from sklearn.model_selection import StratifiedKFold, cross_val_score
+import os
 from sklearn.metrics import accuracy_score, roc_auc_score
+DATA_DIR = os.path.join(os.path.dirname(__file__), "sample-data")
 
 
 def extract_features(df):
@@ -29,7 +31,7 @@ def extract_features(df):
     return features.dropna()
 
 
-def train_model(log_path='trade_log.csv', model_output='model_xgb.pkl'):
+def train_model(log_path=os.path.join(DATA_DIR, 'trade_log.csv'), model_output=os.path.join(DATA_DIR, 'model_xgb.pkl')):
     try:
         trades = pd.read_csv(log_path)
         trades = trades.dropna()
