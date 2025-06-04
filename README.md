@@ -18,14 +18,11 @@ signals.
    ```bash
    pip install -r requirements.txt
    ```
-   The `ta-lib` package requires the TA-Lib library to be available on your
-   system. On Debian/Ubuntu you can install it with `apt-get install -y libta-lib0 libta-lib-dev`.
+   The `ta-lib` package requires the TA-Lib library to be available on your system. On Debian/Ubuntu you can install it with `apt-get install -y libta-lib0 libta-lib-dev`.
 
 ## Configuration
 
-Copy `config.json` and edit it with your API credentials and desired settings.
-At minimum, set `api_key` and `api_secret` to your Binance account keys. Never
-commit your real keys to version control.
+Copy `config.json` and edit it with your API credentials and desired settings. At minimum, set `api_key` and `api_secret` to your Binance account keys. Never commit your real keys to version control.
 
 Example:
 ```json
@@ -48,8 +45,7 @@ Run the bot in live mode:
 ```bash
 python main.py
 ```
-To run backtests or train the strategy, set `mode` in `config.json` to
-`"backtest"` or `"train"` before executing `main.py`.
+To run backtests or train the strategy, set `mode` in `config.json` to `"backtest"` or `"train"` before executing `main.py`.
 
 Additional utilities:
 - `fetch_ohlcv.py` – download historical candles to the `data/` directory.
@@ -58,8 +54,7 @@ Additional utilities:
 
 ## Scripts
 
-- **`main.py`** – entry point that loads the config and launches the bot in live
-  trading, backtest or training mode.
+- **`main.py`** – entry point that loads the config and launches the bot in live trading, backtest or training mode.
 - **`live_strategy.py`** – implements the moving‑average based trading logic.
 - **`backtest_engine.py`** – evaluates past trades stored in `trade_log.csv`.
 - **`signal_engine.py`** – wrapper around the ML model for generating signals.
@@ -70,6 +65,4 @@ Additional utilities:
 
 ## API Credentials
 
-Your API key and secret are required for live trading. Ensure they are kept
-private and never shared. If the credentials are invalid or missing, the bot
-will not be able to place orders.
+Your API key and secret are required for live trading. Ensure they are kept private and never shared. If the credentials are invalid or missing, the bot will not be able to place orders.
