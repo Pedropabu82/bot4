@@ -1,5 +1,5 @@
-import logging
 import json
+import logging
 import pandas as pd
 from itertools import product
 from backtest_engine import simulate_trades
