@@ -6,12 +6,14 @@ import logging
 from api_client import BinanceClient
 from live_strategy import LiveMAStrategy
 from backtest_engine import simulate_trades
+from websocket_client import start_streams
 from log_utils import configure_logging
 
 # Configure logging for console and file
 configure_logging(logging.DEBUG)
 
 async def main():
+    ws_task = None
     try:
         logger = logging.getLogger(__name__)
         logger.info("Starting bot...")
@@ -33,10 +35,25 @@ async def main():
             logger.info(f"Backtest results: {metrics}")
         else:
             logger.info("Running in live mode...")
+            ws_task = asyncio.create_task(
+                start_streams(
+                    strategy.symbols,
+                    strategy.timeframes,
+                    strategy,
+                    strategy.timeframes,
+                    cfg,
+                )
+            )
             await strategy.run()
     except Exception as e:
         logger.error(f"Error in main: {e}")
     finally:
+        if ws_task:
+            ws_task.cancel()
+            try:
+                await ws_task
+            except asyncio.CancelledError:
+                pass
         if 'client' in locals():
             await client.close()
 
