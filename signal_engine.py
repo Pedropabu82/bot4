@@ -4,8 +4,11 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+DATA_DIR = os.path.join(os.path.dirname(__file__), "sample-data")
+
+
 class SignalEngine:
-    def __init__(self, model_path="model_xgb.pkl"):
+    def __init__(self, model_path=os.path.join(DATA_DIR, "model_xgb.pkl")):
         self.model = None
         self.model_path = model_path
         self.load_model()

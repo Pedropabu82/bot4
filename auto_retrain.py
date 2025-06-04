@@ -8,6 +8,8 @@ import time
 import os
 from sklearn.utils.class_weight import compute_class_weight
 
+DATA_DIR = os.path.join(os.path.dirname(__file__), "sample-data")
+
 def fetch_ohlcv(symbol, timeframe, since, limit=300):
     binance = ccxt.binance({
         'enableRateLimit': True,
@@ -36,7 +38,7 @@ def extract_features(df):
     features['volume'] = df['volume']
     return features.dropna().reset_index(drop=True)
 
-def train_from_log(trade_log='trade_log.csv'):
+def train_from_log(trade_log=os.path.join(DATA_DIR, 'trade_log.csv')):
     if not os.path.exists(trade_log):
         print(f"Arquivo {trade_log} não encontrado.")
         return
@@ -89,7 +91,8 @@ def train_from_log(trade_log='trade_log.csv'):
     weight_dict = {0: class_weights[0], 1: class_weights[1]}
     model = xgb.XGBClassifier(use_label_encoder=False, eval_metric='logloss', scale_pos_weight=weight_dict[1]/weight_dict[0])
     model.fit(df_X, y)
-    joblib.dump(model, "model_xgb.pkl")
+    model_file = os.path.join(DATA_DIR, "model_xgb.pkl")
+    joblib.dump(model, model_file)
     print("✅ Modelo treinado e salvo como model_xgb.pkl")
 
 if __name__ == "__main__":

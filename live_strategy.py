@@ -6,7 +6,10 @@ import logging
 import talib
 from datetime import datetime, timedelta
 import traceback
+import os
 from auto_retrain import train_from_log
+
+DATA_DIR = os.path.join(os.path.dirname(__file__), "sample-data")
 
 logger = logging.getLogger(__name__)
 
@@ -273,12 +276,15 @@ class LiveMAStrategy:
     def log_trade(self,symbol,trade_type,entry,exit_price,result,timeframe):
         row=[datetime.now().strftime('%Y-%m-%d %H:%M:%S'),symbol,timeframe,trade_type,entry,exit_price,((exit_price-entry)/entry*100 if trade_type=='EXIT' else 0),result]
         try:
-            with open('trade_log.csv','a') as f: f.write(','.join(map(str,row))+'\n')
+            log_file = os.path.join(DATA_DIR, 'trade_log.csv')
+            with open(log_file,'a') as f:
+                f.write(','.join(map(str,row))+'\n')
         except: pass
 
     def get_recent_trades(self,symbol=None):
         try:
-            df=pd.read_csv('trade_log.csv'); df['timestamp']=pd.to_datetime(df['timestamp'])
+            log_file = os.path.join(DATA_DIR, 'trade_log.csv')
+            df=pd.read_csv(log_file); df['timestamp']=pd.to_datetime(df['timestamp'])
             recent=df[df['timestamp']>=datetime.now()-timedelta(days=1)]
             return recent[recent['symbol']==symbol].to_dict('records') if symbol else recent.to_dict('records')
         except: return []
