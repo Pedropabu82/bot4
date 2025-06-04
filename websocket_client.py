@@ -52,7 +52,7 @@ async def start_streams(symbols, timeframes, strategy, valid_timeframes, config)
                 for tf in timeframes:
                     df = await fetch_historical_klines(exchange, symbol, tf)
                     if df is not None:
-                        await strategy.process_timeframe_data(symbol, tf, df)
+                        strategy.process_timeframe_data(symbol, tf, df)
                     else:
                         logger.warning(f"REST API failed for {symbol} {tf}, skipping data update")
             await asyncio.sleep(60)
@@ -98,13 +98,15 @@ async def start_streams(symbols, timeframes, strategy, valid_timeframes, config)
                             'close': [float(kline['c'])],
                             'volume': [float(kline['v'])]
                         })
-                        logger.info(f"Received WebSocket kline for {symbol} {timeframe}: timestamp={df['timestamp'].iloc[0]}, close={df['close'].iloc[0]}")
-                        await strategy.process_timeframe_data(symbol, timeframe, df)
+                        logger.info(
+                            f"Received WebSocket kline for {symbol} {timeframe}: timestamp={df['timestamp'].iloc[0]}, close={df['close'].iloc[0]}"
+                        )
+                        strategy.process_timeframe_data(symbol, timeframe, df)
 
                     elif '@ticker' in stream_name:
                         price = float(data.get('c', 0))
                         if price > 0:
-                            await strategy.process_tick(symbol, price)
+                            strategy.process_tick(symbol, price)
 
         except websockets.exceptions.ConnectionClosedError as e:
             logger.error(f"WebSocket closed on {uris[current_uri_index]}: {e}")
