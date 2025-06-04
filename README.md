@@ -2,6 +2,11 @@
 
 Trading bot sample project using CCXT and XGBoost.
 
+The codebase works with **Python 3.11** and relies on the `ta-lib` Python
+package (version `0.6.3`). Make sure you install dependencies from
+`requirements.txt` rather than the similarly named `TA-Lib` package which may
+lead to import errors.
+
 ## Setup
 
 ```bash
