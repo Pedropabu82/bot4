@@ -27,6 +27,11 @@ Modes available via the `mode` key in `config.json`:
 * `train` - update the model using logged trades
 * `backtest` - replay trades to evaluate performance
 
+### New options
+
+* `min_ai_confidence` - probability threshold (0-1) required by the AI model to allow an entry
+* Spread and depth are automatically checked before orders to avoid poor fills
+
 ## Sample data
 
 Example trade logs are stored in the `data/` directory. The scripts
