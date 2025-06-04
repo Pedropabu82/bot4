@@ -4,7 +4,6 @@ import xgboost as xgb
 import talib
 import joblib
 from sklearn.model_selection import StratifiedKFold, cross_val_score
-from sklearn.metrics import accuracy_score, roc_auc_score
 
 
 def extract_features(df):

@@ -1,5 +1,4 @@
 import pandas as pd
-import numpy as np
 import ccxt.async_support as ccxt
 import asyncio
 import logging
