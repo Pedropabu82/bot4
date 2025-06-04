@@ -1,3 +1,5 @@
+"""Implementation of a moving average based trading strategy."""
+
 import pandas as pd
 import ccxt.async_support as ccxt
 import asyncio
@@ -272,12 +274,12 @@ class LiveMAStrategy:
     def log_trade(self,symbol,trade_type,entry,exit_price,result,timeframe):
         row=[datetime.now().strftime('%Y-%m-%d %H:%M:%S'),symbol,timeframe,trade_type,entry,exit_price,((exit_price-entry)/entry*100 if trade_type=='EXIT' else 0),result]
         try:
-            with open('trade_log.csv','a') as f: f.write(','.join(map(str,row))+'\n')
+            with open('data/trade_log.csv','a') as f: f.write(','.join(map(str,row))+'\n')
         except: pass
 
     def get_recent_trades(self,symbol=None):
         try:
-            df=pd.read_csv('trade_log.csv'); df['timestamp']=pd.to_datetime(df['timestamp'])
+            df=pd.read_csv('data/trade_log.csv'); df['timestamp']=pd.to_datetime(df['timestamp'])
             recent=df[df['timestamp']>=datetime.now()-timedelta(days=1)]
             return recent[recent['symbol']==symbol].to_dict('records') if symbol else recent.to_dict('records')
         except: return []

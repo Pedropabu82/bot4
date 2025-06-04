@@ -1,3 +1,5 @@
+"""Real-time data feed and fallback REST retrieval for the trading strategy."""
+
 import asyncio
 import json
 import websockets

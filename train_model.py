@@ -1,3 +1,5 @@
+"""Training utilities for building the XGBoost model from trade logs."""
+
 import pandas as pd
 import numpy as np
 import xgboost as xgb
@@ -28,7 +30,7 @@ def extract_features(df):
     return features.dropna()
 
 
-def train_model(log_path='trade_log.csv', model_output='model_xgb.pkl'):
+def train_model(log_path='data/trade_log.csv', model_output='model_xgb.pkl'):
     try:
         trades = pd.read_csv(log_path)
         trades = trades.dropna()
