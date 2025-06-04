@@ -1,7 +1,5 @@
 import pandas as pd
 import numpy as np
-import os
-from sklearn.metrics import accuracy_score, precision_score, recall_score
 
 # Simples motor de backtest baseado nos logs + sinais simulados
 
