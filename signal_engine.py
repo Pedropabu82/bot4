@@ -26,14 +26,16 @@ class SignalEngine:
         try:
             # Calcular score simples baseado nos indicadores (fallback)
             base_score = sum([
-                data.get('ema', 0),
+                data.get('ema_short', 0),
+                data.get('ema_long', 0),
                 data.get('macd', 0),
+                data.get('macdsignal', 0),
                 data.get('rsi', 0),
                 data.get('adx', 0),
                 data.get('obv', 0),
                 data.get('atr', 0),
                 data.get('volume', 0)
-            ]) / 7
+            ]) / 9
 
             proba = base_score
             ok = base_score >= min_score
@@ -42,8 +44,10 @@ class SignalEngine:
             # Se modelo carregado, usa predição real
             if self.model:
                 features = [[
-                    data.get('ema', 0),
+                    data.get('ema_short', 0),
+                    data.get('ema_long', 0),
                     data.get('macd', 0),
+                    data.get('macdsignal', 0),
                     data.get('rsi', 0),
                     data.get('adx', 0),
                     data.get('obv', 0),

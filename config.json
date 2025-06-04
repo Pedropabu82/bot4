@@ -4,6 +4,7 @@
     "testnet": true,
     "leverage": 10,
     "entry_timeout_sec": 30,
+    "min_ai_confidence": 0.5,
     "max_trades_per_day": 5,
     "signal_priority": false,
     "tp": {"BTCUSDT": 0.07},
