@@ -1,3 +1,5 @@
+"""Entry point for starting the trading bot and selecting its mode."""
+
 import asyncio
 import json
 import logging

@@ -1,9 +1,11 @@
+"""Simple backtesting engine that replays trades from the log."""
+
 import pandas as pd
 import numpy as np
 
 # Simples motor de backtest baseado nos logs + sinais simulados
 
-def simulate_trades(trade_log_path='trade_log.csv', initial_balance=1000):
+def simulate_trades(trade_log_path='data/trade_log.csv', initial_balance=1000):
     df = pd.read_csv(trade_log_path)
     df = df[df['type'] == 'ENTRY']
     df = df.sort_values('timestamp')

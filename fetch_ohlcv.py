@@ -1,3 +1,5 @@
+"""Tools for downloading historical OHLCV data from Binance."""
+
 import ccxt.async_support as ccxt
 import pandas as pd
 import asyncio

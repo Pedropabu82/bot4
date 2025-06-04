@@ -1,3 +1,5 @@
+"""Utility wrapper around ccxt providing basic exchange operations."""
+
 import ccxt.async_support as ccxt
 import asyncio
 import logging
