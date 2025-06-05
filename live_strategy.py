@@ -213,17 +213,27 @@ class LiveMAStrategy:
             df = self.data[symbol].get(timeframe, pd.DataFrame())
             if df.empty or len(df) < 30:
                 return True
-            ema = talib.EMA(df['close'], timeperiod=12).iloc[-1]
-            macd, _, _ = talib.MACD(df['close'], 12, 26, 9)
+            ema_short = talib.EMA(
+                df['close'],
+                timeperiod=self.config['indicators'][symbol].get('ema_short', 12)
+            ).iloc[-1]
+            ema_long = talib.EMA(
+                df['close'],
+                timeperiod=self.config['indicators'][symbol].get('ema_long', 26)
+            ).iloc[-1]
+            macd, macdsignal, _ = talib.MACD(df['close'], 12, 26, 9)
             macd_val = macd.iloc[-1]
+            macdsignal_val = macdsignal.iloc[-1]
             rsi = talib.RSI(df['close'], 14).iloc[-1]
             adx = talib.ADX(df['high'], df['low'], df['close'], 14).iloc[-1]
             obv = talib.OBV(df['close'], df['volume']).iloc[-1]
             atr = talib.ATR(df['high'], df['low'], df['close'], 14).iloc[-1]
             volume = df['volume'].iloc[-1]
             features = {
-                'ema': ema,
+                'ema_short': ema_short,
+                'ema_long': ema_long,
                 'macd': macd_val,
+                'macdsignal': macdsignal_val,
                 'rsi': rsi,
                 'adx': adx,
                 'obv': obv,
