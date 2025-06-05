@@ -16,6 +16,7 @@ class LiveMAStrategy:
     def __init__(self, client, config):
         self.client = client
         self.config = config
+        self.signal_priority = config.get('signal_priority', False)
         try:
             self.symbols = list(config['indicators'].keys())
             if not self.symbols:
@@ -239,11 +240,12 @@ class LiveMAStrategy:
         await self.sync_position(symbol)
         if self.position_side[symbol] or await self.has_open(symbol):
             return
-        if not await self.validate_liquidity(symbol, qty):
-            return
-        if not self.ai_accepts_trade(symbol, tf):
-            logger.info(f"AI rejected trade for {symbol} {tf}")
-            return
+        if not self.signal_priority:
+            if not await self.validate_liquidity(symbol, qty):
+                return
+            if not self.ai_accepts_trade(symbol, tf):
+                logger.info(f"AI rejected trade for {symbol} {tf}")
+                return
         ob=await self.client.exchange.fetch_order_book(symbol,limit=5)
         bid,ask=float(ob['bids'][0][0]),float(ob['asks'][0][0])
         offset=self.maker_offset
