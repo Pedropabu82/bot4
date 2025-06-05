@@ -1,3 +1,4 @@
+timestamp,symbol,timeframe,type,entry_price,exit_price,pnl_pct,result
 2025-05-31 02:55:55,BTCUSDT,1h,ENTRY,103559.2,0,0,open
 2025-05-31 02:58:39,BTCUSDT,1h,ENTRY,103550.02,0,0,open
 2025-05-31 02:59:03,SOLUSDT,1h,ENTRY,154.21,0,0,open

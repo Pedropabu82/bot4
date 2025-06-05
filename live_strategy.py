@@ -5,6 +5,7 @@ import ccxt.async_support as ccxt
 import asyncio
 import logging
 import talib
+import os
 from datetime import datetime, timedelta
 import traceback
 from auto_retrain import train_from_log
@@ -332,8 +333,14 @@ class LiveMAStrategy:
     def log_trade(self,symbol,trade_type,entry,exit_price,result,timeframe):
         row=[datetime.now().strftime('%Y-%m-%d %H:%M:%S'),symbol,timeframe,trade_type,entry,exit_price,((exit_price-entry)/entry*100 if trade_type=='EXIT' else 0),result]
         try:
-            with open('data/trade_log.csv','a') as f: f.write(','.join(map(str,row))+'\n')
-        except: pass
+            log_path='data/trade_log.csv'
+            needs_header=not os.path.exists(log_path) or os.path.getsize(log_path)==0
+            with open(log_path,'a') as f:
+                if needs_header:
+                    f.write('timestamp,symbol,timeframe,type,entry_price,exit_price,pnl_pct,result\n')
+                f.write(','.join(map(str,row))+'\n')
+        except Exception:
+            pass
 
     def get_recent_trades(self,symbol=None):
         try:
