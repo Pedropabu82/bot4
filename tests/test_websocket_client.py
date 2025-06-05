@@ -1,3 +1,4 @@
+pytest_plugins = ("pytest_asyncio",)
 import asyncio
 import json
 import pandas as pd

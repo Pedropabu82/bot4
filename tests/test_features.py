@@ -1,3 +1,9 @@
+import sys, os
+import warnings
+import pytest
+pytestmark = pytest.mark.filterwarnings("ignore")
+warnings.filterwarnings("ignore")
+sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 import pandas as pd
 import talib
 
