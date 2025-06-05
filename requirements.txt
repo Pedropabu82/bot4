@@ -6,4 +6,4 @@ rich==13.7.1
 xgboost==3.0.2
 websockets==15.0.1
 joblib==1.5.1
-scikit-learn==1.6.1
+
