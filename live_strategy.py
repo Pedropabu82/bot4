@@ -38,6 +38,7 @@ class LiveMAStrategy:
         self.min_qty = {'BTCUSDT': 0.001, 'ETHUSDT': 0.01, 'SOLUSDT': 0.1}
         self.signal_engine = SignalEngine()
         self.min_ai_confidence = config.get('min_ai_confidence', 0.5)
+        self.maker_offset = config.get('maker_offset', 0)
         logger.info(f"Initialized with symbols: {self.symbols}")
 
     async def initialize(self):
@@ -245,7 +246,16 @@ class LiveMAStrategy:
             return
         ob=await self.client.exchange.fetch_order_book(symbol,limit=5)
         bid,ask=float(ob['bids'][0][0]),float(ob['asks'][0][0])
-        lim=round(bid+(ask-bid)*0.3,self.price_precision[symbol]) if side=='long' else round(ask-(ask-bid)*0.3,self.price_precision[symbol])
+        offset=self.maker_offset
+        if side=='long':
+            price_target=bid*(1+offset)
+            if price_target>=ask:
+                price_target=bid
+        else:
+            price_target=ask*(1-offset)
+            if price_target<=bid:
+                price_target=ask
+        lim=round(price_target,self.price_precision[symbol])
         if qty<self.min_qty.get(symbol,0):
             return
         try:
@@ -258,29 +268,16 @@ class LiveMAStrategy:
                     await self.set_sl(symbol); await self.set_tp(symbol)
                     self.daily_trades[symbol].append(datetime.now()); self.cooldown[symbol]=datetime.now()+timedelta(minutes=self.calculate_cooldown(symbol,tf))
                     self.log_trade(symbol,'ENTRY',self.entry_price[symbol],0,'open',tf); return
-                if st['status']=='CANCELED': return
+                if st['status']=='CANCELED':
+                    return
             await self.client.exchange.cancel_order(order['id'],symbol)
+            return
         except ccxt.BaseError as e:
             if 'code' in str(e) and '-5022' in str(e):
-                logger.warning(f"PostOnly order rejected for {symbol} ({side}) due to -5022 error, falling back to market order")
-                mkt=await self.client.exchange.create_market_order(symbol,'buy' if side=='long' else 'sell',qty)
-                st=await self.client.exchange.fetch_order(mkt['id'],symbol)
-                if st['status'] in ['closed','FILLED']:
-                    self.position_side[symbol]=side; self.entry_price[symbol]=float(st.get('price') or st.get('avgPrice')); self.quantity[symbol]=qty
-                    await self.set_sl(symbol); await self.set_tp(symbol)
-                    self.daily_trades[symbol].append(datetime.now()); self.cooldown[symbol]=datetime.now()+timedelta(minutes=self.calculate_cooldown(symbol,tf))
-                    self.log_trade(symbol,'ENTRY',self.entry_price[symbol],0,'open',tf)
-                return
+                logger.warning(f"PostOnly order rejected for {symbol} ({side}) - order cancelled")
             else:
                 logger.error(f"Failed to place limit order for {symbol}: {e}")
-                return
-        mkt=await self.client.exchange.create_market_order(symbol,'buy' if side=='long' else 'sell',qty)
-        st=await self.client.exchange.fetch_order(mkt['id'],symbol)
-        if st['status'] in ['closed','FILLED']:
-            self.position_side[symbol]=side; self.entry_price[symbol]=float(st.get('price') or st.get('avgPrice')); self.quantity[symbol]=qty
-            await self.set_sl(symbol); await self.set_tp(symbol)
-            self.daily_trades[symbol].append(datetime.now()); self.cooldown[symbol]=datetime.now()+timedelta(minutes=self.calculate_cooldown(symbol,tf))
-            self.log_trade(symbol,'ENTRY',self.entry_price[symbol],0,'open',tf)
+            return
 
     def calculate_cooldown(self,symbol,tf):
         df=self.data[symbol].get(tf,pd.DataFrame())
