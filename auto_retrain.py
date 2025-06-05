@@ -10,6 +10,7 @@ import time
 import os
 import logging
 from sklearn.utils.class_weight import compute_class_weight
+from features import extract_features
 
 logger = logging.getLogger(__name__)
 
@@ -27,19 +28,6 @@ def fetch_ohlcv(symbol, timeframe, since, limit=300):
         logger.error(f"Erro ao buscar candles para {symbol} {timeframe}: {e}")
         return None
 
-def extract_features(df):
-    features = pd.DataFrame()
-    features['ema_short'] = talib.EMA(df['close'], timeperiod=9)
-    features['ema_long'] = talib.EMA(df['close'], timeperiod=21)
-    macd, macdsignal, _ = talib.MACD(df['close'], fastperiod=12, slowperiod=26, signalperiod=9)
-    features['macd'] = macd
-    features['macdsignal'] = macdsignal
-    features['rsi'] = talib.RSI(df['close'], timeperiod=14)
-    features['adx'] = talib.ADX(df['high'], df['low'], df['close'], timeperiod=14)
-    features['obv'] = talib.OBV(df['close'], df['volume'])
-    features['atr'] = talib.ATR(df['high'], df['low'], df['close'], timeperiod=14)
-    features['volume'] = df['volume']
-    return features.dropna().reset_index(drop=True)
 
 def train_from_log(trade_log='data/trade_log.csv'):
     if not os.path.exists(trade_log):
