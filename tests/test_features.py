@@ -1,9 +1,19 @@
-import sys, os
+import sys, os, types, types as modtypes
 import warnings
 import pytest
 pytestmark = pytest.mark.filterwarnings("ignore")
 warnings.filterwarnings("ignore")
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
+sys.modules.setdefault('xgboost', types.SimpleNamespace())
+dummy_sk = modtypes.ModuleType('sklearn')
+dummy_utils = modtypes.ModuleType('sklearn.utils')
+dummy_cw = modtypes.ModuleType('sklearn.utils.class_weight')
+dummy_cw.compute_class_weight = lambda *a, **k: None
+dummy_utils.class_weight = dummy_cw
+sys.modules.setdefault('sklearn', dummy_sk)
+sys.modules.setdefault('sklearn.utils', dummy_utils)
+sys.modules.setdefault('sklearn.utils.class_weight', dummy_cw)
+
 import pandas as pd
 import talib
 
