@@ -6,7 +6,6 @@ import numpy as np
 import ccxt
 import joblib
 import xgboost as xgb
-import talib
 import time
 import os
 import logging

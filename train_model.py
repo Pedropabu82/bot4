@@ -4,7 +4,6 @@ import json
 import pandas as pd
 import numpy as np
 import xgboost as xgb
-import talib
 import joblib
 import logging
 from sklearn.model_selection import StratifiedKFold, cross_val_score
