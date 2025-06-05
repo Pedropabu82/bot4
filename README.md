@@ -12,6 +12,8 @@ lead to import errors.
 ```bash
 pip install -r requirements.txt
 ```
+This installs all required libraries including `xgboost`, `joblib`,
+`scikit-learn` and `websockets`.
 
 ## Usage
 
