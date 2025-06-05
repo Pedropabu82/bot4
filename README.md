@@ -41,9 +41,7 @@ Additional dependencies used by optional features include `xgboost`,
 
 ## Usage
 
-Edit `config.json` with your API credentials then run. Alternatively set the
-`BINANCE_API_KEY` and `BINANCE_API_SECRET` environment variables to avoid
-storing keys in the file:
+Set the `BINANCE_API_KEY` and `BINANCE_API_SECRET` environment variables before running the bot.
 
 ```bash
 export BINANCE_API_KEY=your_key
