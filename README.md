@@ -36,4 +36,11 @@ Modes available via the `mode` key in `config.json`:
 
 Example trade logs are stored in the `data/` directory. The scripts
 expect `data/trade_log.csv` to exist and will append new entries to it.
+## Logging
+
+All utilities now rely on Python's `logging` module. When running
+`main.py` or any of the helper scripts like `auto_retrain.py` or
+`fetch_ohlcv.py`, log messages are written to `bot.log` and also
+displayed in the console.
+
 Backtests require data in this file; if it's empty the results will also be empty.
