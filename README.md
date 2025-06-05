@@ -129,6 +129,9 @@ displayed in the console.
 
 The log file now begins with the header `timestamp,symbol,timeframe,type,entry_price,exit_price,pnl_pct,result`.
 Backtests require data in this file; if it's empty, the results will also be empty.
+For training, ensure every `ENTRY` row eventually has a matching `EXIT` row with
+the final trade result. Rows without an `EXIT` counterpart will be skipped during
+retraining.
 
 ## Disclaimer
 
