@@ -9,6 +9,7 @@ import talib
 import time
 import os
 import logging
+import json
 from sklearn.utils.class_weight import compute_class_weight
 from features import extract_features
 
@@ -29,12 +30,18 @@ def fetch_ohlcv(symbol, timeframe, since, limit=300):
         return None
 
 
-def train_from_log(trade_log='data/trade_log.csv'):
+def train_from_log(trade_log='data/trade_log.csv', config_file='config.json'):
     if not os.path.exists(trade_log):
         logger.error(f"Arquivo {trade_log} não encontrado.")
         return
 
     trades = pd.read_csv(trade_log)
+    with open(config_file, 'r') as f:
+        cfg = json.load(f)
+    bb_period = cfg.get('bb_period', 20)
+    bb_k = cfg.get('bb_k', 2)
+    stoch_k_period = cfg.get('stoch_k_period', 14)
+    stoch_d_period = cfg.get('stoch_d_period', 3)
     trades = trades.dropna()
     trades = trades[trades['type'] == 'ENTRY']
     logger.info(f"Carregando {len(trades)} trades do log.")
@@ -56,7 +63,13 @@ def train_from_log(trade_log='data/trade_log.csv'):
             logger.warning(f"Dados vazios para {symbol} {timeframe}, pulando...")
             continue
 
-        feats = extract_features(df)
+        feats = extract_features(
+            df,
+            bb_period=bb_period,
+            bb_k=bb_k,
+            stoch_k_period=stoch_k_period,
+            stoch_d_period=stoch_d_period,
+        )
         if feats.empty:
             logger.warning(f"Features vazias para {symbol} {timeframe}, pulando...")
             continue

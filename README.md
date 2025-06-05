@@ -61,9 +61,12 @@ Modes available via the `mode` key in `config.json`:
 
 * `min_ai_confidence` - probability threshold (0-1) required by the AI model to allow an entry
 * `maker_offset` - fraction added/subtracted from best bid/ask when submitting post-only orders (default `0`)
+* `bb_period` - lookback period for Bollinger Bands (default `20`)
+* `bb_k` - standard deviation multiplier for Bollinger Bands (default `2`)
+* `stoch_k_period` - K period for the Stochastic Oscillator (default `14`)
+* `stoch_d_period` - D period for the Stochastic Oscillator (default `3`)
 * Spread and depth are automatically checked before orders to avoid poor fills
-* The AI model expects the following features: `ema_short`, `ema_long`, `macd`,
-  `macdsignal`, `rsi`, `adx`, `obv`, `atr`, `volume`
+* The AI model expects the following features: `ema_short`, `ema_long`, `macd`, `macdsignal`, `rsi`, `adx`, `obv`, `atr`, `volume`, `bb_upper`, `bb_middle`, `bb_lower`, `stoch_k`, `stoch_d`, `vwap`
 ## Indicator optimization
 
 Earlier versions shipped with a standalone script called
