@@ -238,10 +238,19 @@ class LiveMAStrategy:
                         if not any(o['type'].upper() in ['STOP_MARKET','TAKE_PROFIT_MARKET'] for o in orders):
                             await self.set_sl(symbol); await self.set_tp(symbol)
                     break
-            if not active and self.position_side[symbol] is not None:
+            if not active:
                 await self.check_exit_fills(symbol)
+                for o in orders:
+                    if o['status']=='open' and o['type'].upper() in ['STOP_MARKET','TAKE_PROFIT_MARKET']:
+                        await self.client.exchange.cancel_order(o['id'],symbol)
                 if self.position_side[symbol] is not None:
-                    self.position_side[symbol]=None; self.entry_price[symbol]=None; self.quantity[symbol]=None; self.unrealized_pnl[symbol]=0
+                    self.position_side[symbol]=None
+                    self.entry_price[symbol]=None
+                    self.quantity[symbol]=None
+                    self.unrealized_pnl[symbol]=0
+                self.sl_order_id[symbol]=None
+                self.tp_order_id[symbol]=None
+                self.entry_tf[symbol]=None
             for o in orders:
                 if o['status']=='open' and o['type'].upper() not in ['STOP_MARKET','TAKE_PROFIT_MARKET']:
                     await self.client.exchange.cancel_order(o['id'],symbol)
