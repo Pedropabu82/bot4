@@ -9,6 +9,7 @@ import talib
 import time
 import os
 import logging
+import json
 from sklearn.utils.class_weight import compute_class_weight
 from features import extract_features
 
@@ -34,6 +35,9 @@ def train_from_log(trade_log='data/trade_log.csv'):
         logger.error(f"Arquivo {trade_log} não encontrado.")
         return
 
+    with open('config.json', 'r') as f:
+        cfg = json.load(f)
+
     trades = pd.read_csv(trade_log)
     trades = trades.dropna()
     trades = trades[trades['type'] == 'ENTRY']
@@ -56,7 +60,7 @@ def train_from_log(trade_log='data/trade_log.csv'):
             logger.warning(f"Dados vazios para {symbol} {timeframe}, pulando...")
             continue
 
-        feats = extract_features(df)
+        feats = extract_features(df, symbol, cfg)
         if feats.empty:
             logger.warning(f"Features vazias para {symbol} {timeframe}, pulando...")
             continue

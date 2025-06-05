@@ -6,6 +6,7 @@ import xgboost as xgb
 import talib
 import joblib
 import logging
+import json
 from sklearn.model_selection import StratifiedKFold, cross_val_score
 from features import extract_features
 
@@ -16,6 +17,9 @@ logger = logging.getLogger(__name__)
 
 def train_model(log_path='data/trade_log.csv', model_output='model_xgb.pkl'):
     try:
+        with open('config.json', 'r') as f:
+            cfg = json.load(f)
+
         trades = pd.read_csv(log_path)
         trades = trades.dropna()
         trades = trades[trades['type'] == 'ENTRY']
@@ -33,7 +37,7 @@ def train_model(log_path='data/trade_log.csv', model_output='model_xgb.pkl'):
                     'volume': [row['volume']]
                 })
                 df = pd.concat([df] * 150, ignore_index=True)  # Simular série temporal
-                feats = extract_features(df)
+                feats = extract_features(df, row['symbol'], cfg)
                 if feats.empty:
                     continue
                 X_list.append(feats.iloc[-1])
