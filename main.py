@@ -3,6 +3,7 @@
 import asyncio
 import json
 import logging
+import os
 from api_client import BinanceClient
 from live_strategy import LiveMAStrategy
 from backtest_engine import simulate_trades
@@ -25,6 +26,8 @@ async def main():
         logger.info("Starting bot...")
         with open('config.json', 'r') as f:
             cfg = json.load(f)
+        cfg['api_key'] = os.environ.get('BINANCE_API_KEY', cfg.get('api_key'))
+        cfg['api_secret'] = os.environ.get('BINANCE_API_SECRET', cfg.get('api_secret'))
         logger.debug(f"Config loaded: {cfg}")
         client = BinanceClient(cfg)
         strategy = LiveMAStrategy(client, cfg)
