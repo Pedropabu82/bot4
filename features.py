@@ -8,11 +8,23 @@ def extract_features(
     bb_k: float = 2,
     stoch_k_period: int = 14,
     stoch_d_period: int = 3,
+    ema_short: int = 9,
+    ema_long: int = 21,
 ) -> pd.DataFrame:
-    """Compute model features from OHLCV dataframe."""
+    """Compute model features from OHLCV dataframe.
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        Candle data with columns ``open``, ``high``, ``low``, ``close`` and ``volume``.
+    ema_short : int, optional
+        Period for the short exponential moving average.
+    ema_long : int, optional
+        Period for the long exponential moving average.
+    """
     features = pd.DataFrame()
-    features['ema_short'] = talib.EMA(df['close'], timeperiod=9)
-    features['ema_long'] = talib.EMA(df['close'], timeperiod=21)
+    features['ema_short'] = talib.EMA(df['close'], timeperiod=ema_short)
+    features['ema_long'] = talib.EMA(df['close'], timeperiod=ema_long)
     macd, macdsignal, _ = talib.MACD(
         df['close'], fastperiod=12, slowperiod=26, signalperiod=9
     )

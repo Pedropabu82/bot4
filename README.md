@@ -39,6 +39,17 @@ This installs all required libraries including `xgboost`, `joblib`,
 Additional dependencies used by optional features include `xgboost`,
 `scikit-learn`, `joblib` and `websockets`.
 
+## Running tests
+
+Install the packages required for the test suite with:
+
+```bash
+bash scripts/setup_test_env.sh
+```
+
+This script installs tools like `pytest-asyncio` which are needed for
+`pytest` to run `tests/test_websocket_client.py`.
+
 ## Usage
 
 Edit `config.json` with your API credentials then run. Alternatively set the

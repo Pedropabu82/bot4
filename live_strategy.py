@@ -9,6 +9,7 @@ from datetime import datetime, timedelta
 import traceback
 from auto_retrain import train_from_log
 from signal_engine import SignalEngine
+from features import extract_features
 
 logger = logging.getLogger(__name__)
 
@@ -225,33 +226,19 @@ class LiveMAStrategy:
             df = self.data[symbol].get(timeframe, pd.DataFrame())
             if df.empty or len(df) < 30:
                 return True
-            ema_short = talib.EMA(
-                df['close'],
-                timeperiod=self.config['indicators'][symbol].get('ema_short', 12)
-            ).iloc[-1]
-            ema_long = talib.EMA(
-                df['close'],
-                timeperiod=self.config['indicators'][symbol].get('ema_long', 26)
-            ).iloc[-1]
+            feats = extract_features(
+                df,
+                bb_period=self.config.get("bb_period", 20),
+                bb_k=self.config.get("bb_k", 2),
+                stoch_k_period=self.config.get("stoch_k_period", 14),
+                stoch_d_period=self.config.get("stoch_d_period", 3),
+                ema_short=self.config["indicators"][symbol].get("ema_short", 12),
+                ema_long=self.config["indicators"][symbol].get("ema_long", 26),
+            )
+            features = feats.iloc[-1].to_dict()
             macd, macdsignal, _ = self._calculate_macd(symbol, df)
-            macd_val = macd.iloc[-1]
-            macdsignal_val = macdsignal.iloc[-1]
-            rsi = talib.RSI(df['close'], 14).iloc[-1]
-            adx = talib.ADX(df['high'], df['low'], df['close'], 14).iloc[-1]
-            obv = talib.OBV(df['close'], df['volume']).iloc[-1]
-            atr = talib.ATR(df['high'], df['low'], df['close'], 14).iloc[-1]
-            volume = df['volume'].iloc[-1]
-            features = {
-                'ema_short': ema_short,
-                'ema_long': ema_long,
-                'macd': macd_val,
-                'macdsignal': macdsignal_val,
-                'rsi': rsi,
-                'adx': adx,
-                'obv': obv,
-                'atr': atr,
-                'volume': volume,
-            }
+            features["macd"] = macd.iloc[-1]
+            features["macdsignal"] = macdsignal.iloc[-1]
             result = self.signal_engine.get_signal_for_timeframe(features, symbol=symbol, timeframe=timeframe)
             return result['ok'] and result['confidence'] >= self.min_ai_confidence
         except Exception as e:
