@@ -331,9 +331,11 @@ class LiveMAStrategy:
         sl=self.entry_price[symbol]*(1-self.config['sl'].get(symbol,0.025)/self.leverage[symbol]) if self.position_side[symbol]=='long' else self.entry_price[symbol]*(1+self.config['sl'].get(symbol,0.025)/self.leverage[symbol])
         return round(tp,self.price_precision[symbol]),round(sl,self.price_precision[symbol])
 
-    async def update_positions(self,symbol):
-        try: await self.sync_position(symbol)
-        except: pass
+    async def update_positions(self, symbol):
+        try:
+            await self.sync_position(symbol)
+        except Exception as e:
+            logger.error(f"Failed to update positions for {symbol}: {e}")
 
     async def close_position(self,symbol):
         try:
@@ -355,8 +357,10 @@ class LiveMAStrategy:
     def log_trade(self,symbol,trade_type,entry,exit_price,result,timeframe):
         row=[datetime.now().strftime('%Y-%m-%d %H:%M:%S'),symbol,timeframe,trade_type,entry,exit_price,((exit_price-entry)/entry*100 if trade_type=='EXIT' else 0),result]
         try:
-            with open('data/trade_log.csv','a') as f: f.write(','.join(map(str,row))+'\n')
-        except: pass
+            with open('data/trade_log.csv','a') as f:
+                f.write(','.join(map(str, row)) + '\n')
+        except Exception as e:
+            logger.error(f"Failed to log trade for {symbol}: {e}")
 
     def get_recent_trades(self,symbol=None):
         try:
