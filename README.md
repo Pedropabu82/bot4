@@ -34,6 +34,9 @@ Modes available via the `mode` key in `config.json`:
 
 ## Sample data
 
-Example trade logs are stored in the `data/` directory. The scripts
-expect `data/trade_log.csv` to exist and will append new entries to it.
-Backtests require data in this file; if it's empty the results will also be empty.
+Example trade logs are stored in the `data/` directory. Only a short
+sample (`data/trade_log_sample.csv`) is kept under version control.
+The scripts expect `data/trade_log.csv` to exist and will append new
+entries to it, so copy the sample or create an empty CSV before running.
+Backtests require data in this file; if it's empty the results will also
+be empty.
