@@ -7,30 +7,11 @@ import talib
 import joblib
 import logging
 from sklearn.model_selection import StratifiedKFold, cross_val_score
+from features import extract_features
 
 logger = logging.getLogger(__name__)
 
 
-def extract_features(df):
-    features = pd.DataFrame()
-    features['ema_short'] = talib.EMA(df['close'], timeperiod=9)
-    features['ema_long'] = talib.EMA(df['close'], timeperiod=21)
-    macd, macdsignal, _ = talib.MACD(df['close'], fastperiod=12, slowperiod=26, signalperiod=9)
-    features['macd'] = macd
-    features['macdsignal'] = macdsignal
-    features['rsi'] = talib.RSI(df['close'], timeperiod=14)
-    features['adx'] = talib.ADX(df['high'], df['low'], df['close'], timeperiod=14)
-    features['obv'] = talib.OBV(df['close'], df['volume'])
-    features['atr'] = talib.ATR(df['high'], df['low'], df['close'], timeperiod=14)
-    features['volume'] = df['volume']
-
-    # Novas features
-    closes = df['close']
-    features['pct_green_10'] = (closes.diff() > 0).rolling(10).mean()
-    features['pct_green_20'] = (closes.diff() > 0).rolling(20).mean()
-    features['rel_volume'] = df['volume'] / df['volume'].rolling(14).mean()
-
-    return features.dropna()
 
 
 def train_model(log_path='data/trade_log.csv', model_output='model_xgb.pkl'):
