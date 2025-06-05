@@ -78,14 +78,28 @@ class LiveMAStrategy:
             logger.error(f"Failed to load precision for {symbol}: {e}")
 
     def process_timeframe_data(self, symbol, timeframe, kline):
-        df = self.data[symbol].setdefault(timeframe, pd.DataFrame(columns=['timestamp','open','high','low','close','volume']))
-        new = pd.DataFrame([{
-            'timestamp': pd.to_datetime(kline['timestamp'],unit='ms'),
-            'open':float(kline['open']),'high':float(kline['high']),
-            'low':float(kline['low']),'close':float(kline['close']),'volume':float(kline['volume'])
-        }])
-        df = pd.concat([df,new]).drop_duplicates('timestamp').tail(60)
-        self.data[symbol][timeframe]=df
+        df = self.data[symbol].setdefault(
+            timeframe,
+            pd.DataFrame(columns=["timestamp", "open", "high", "low", "close", "volume"]),
+        )
+        if isinstance(kline, pd.DataFrame):
+            if kline.empty:
+                return
+            row = kline.iloc[0]
+        else:
+            row = kline
+        new = pd.DataFrame([
+            {
+                "timestamp": pd.to_datetime(row["timestamp"], unit="ms") if not isinstance(row["timestamp"], pd.Timestamp) else row["timestamp"],
+                "open": float(row["open"]),
+                "high": float(row["high"]),
+                "low": float(row["low"]),
+                "close": float(row["close"]),
+                "volume": float(row["volume"]),
+            }
+        ])
+        df = pd.concat([df, new]).drop_duplicates("timestamp").tail(60)
+        self.data[symbol][timeframe] = df
 
     def process_tick(self, symbol, tick):
         for tf,df in self.data[symbol].items():
