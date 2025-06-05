@@ -207,15 +207,15 @@ class LiveMAStrategy:
             atr = talib.ATR(df['high'], df['low'], df['close'], 14).iloc[-1]
             volume = df['volume'].iloc[-1]
             features = {
-                'ema': ema,
-                'macd': macd_val,
-                'rsi': rsi,
-                'adx': adx,
-                'obv': obv,
-                'atr': atr,
-                'volume': volume,
-            }
-            result = self.signal_engine.get_signal_for_timeframe(features, symbol=symbol, timeframe=timeframe)
+            'ema': ema,
+            'macd': macd_val,
+            'rsi': rsi,
+            'adx': adx,
+            'obv': obv,
+            'atr': atr,
+            'volume': volume,
+}
+result = self.signal_engine.get_signal_for_timeframe(features, symbol=symbol, timeframe=timeframe)
             return result['ok'] and result['confidence'] >= self.min_ai_confidence
         except Exception as e:
             logger.error(f"AI check failed for {symbol}: {e}")
@@ -310,8 +310,11 @@ class LiveMAStrategy:
         return round(tp,self.price_precision[symbol]),round(sl,self.price_precision[symbol])
 
     async def update_positions(self,symbol):
-        try: await self.sync_position(symbol)
-        except: pass
+        try:
+            await self.sync_position(symbol)
+        except Exception as e:
+            logger.error(f"Failed to update positions for {symbol}: {e}")
+            raise
 
     async def close_position(self,symbol):
         try:
@@ -328,26 +331,39 @@ class LiveMAStrategy:
             result='win' if (self.position_side[symbol]=='long' and exit_price>entry) or (self.position_side[symbol]=='short' and exit_price<entry) else 'loss'
             self.log_trade(symbol,'EXIT',entry,exit_price,result,'unknown')
             self.position_side[symbol]=None; self.entry_price[symbol]=None; self.quantity[symbol]=None; self.unrealized_pnl[symbol]=0
-        except: await self.sync_position(symbol)
+        except Exception as e:
+            logger.error(f"Failed to close position for {symbol}: {e}")
+            await self.sync_position(symbol)
+            raise
 
     def log_trade(self,symbol,trade_type,entry,exit_price,result,timeframe):
         row=[datetime.now().strftime('%Y-%m-%d %H:%M:%S'),symbol,timeframe,trade_type,entry,exit_price,((exit_price-entry)/entry*100 if trade_type=='EXIT' else 0),result]
         try:
-            log_path='data/trade_log.csv'
-            needs_header=not os.path.exists(log_path) or os.path.getsize(log_path)==0
-            with open(log_path,'a') as f:
-                if needs_header:
-                    f.write('timestamp,symbol,timeframe,type,entry_price,exit_price,pnl_pct,result\n')
-                f.write(','.join(map(str,row))+'\n')
-        except Exception:
-            pass
+        log_path = 'data/trade_log.csv'
+        needs_header = not os.path.exists(log_path) or os.path.getsize(log_path) == 0
+
+try:
+    with open(log_path, 'a') as f:
+        if needs_header:
+            f.write('timestamp,symbol,timeframe,type,entry_price,exit_price,pnl_pct,result\n')
+        f.write(','.join(map(str, row)) + '\n')
+except OSError as e:
+    logger.error(f"Error writing trade log for {symbol}: {e}")
+except Exception as e:
+    logger.error(f"Unexpected error writing trade log for {symbol}: {e}")
 
     def get_recent_trades(self,symbol=None):
         try:
-            df=pd.read_csv('data/trade_log.csv'); df['timestamp']=pd.to_datetime(df['timestamp'])
-            recent=df[df['timestamp']>=datetime.now()-timedelta(days=1)]
-            return recent[recent['symbol']==symbol].to_dict('records') if symbol else recent.to_dict('records')
-        except: return []
+            df = pd.read_csv('data/trade_log.csv')
+            df['timestamp'] = pd.to_datetime(df['timestamp'])
+            recent = df[df['timestamp'] >= datetime.now() - timedelta(days=1)]
+            return recent[recent['symbol'] == symbol].to_dict('records') if symbol else recent.to_dict('records')
+        except OSError as e:
+            logger.error(f"Error reading trade log: {e}")
+            return []
+        except Exception as e:
+            logger.error(f"Unexpected error processing trade log: {e}")
+            return []
 
     async def calculate_qty(self,symbol,price):
         bal=await self.client.get_balance(); usdt=float(bal.get('USDT',{}).get('free',0))

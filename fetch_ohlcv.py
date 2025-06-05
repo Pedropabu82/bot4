@@ -4,6 +4,9 @@ import ccxt.async_support as ccxt
 import pandas as pd
 import asyncio
 import os
+import logging
+
+logger = logging.getLogger(__name__)
 
 async def fetch_candles(symbol, timeframe, limit=300):
     exchange = ccxt.binance({
@@ -18,7 +21,7 @@ async def fetch_candles(symbol, timeframe, limit=300):
         df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ms')
         return df
     except Exception as e:
-        print(f"Error fetching candles for {symbol} {timeframe}: {e}")
+        logger.error(f"Error fetching candles for {symbol} {timeframe}: {e}")
         return None
     finally:
         await exchange.close()
@@ -32,7 +35,7 @@ async def fetch_and_save_all():
             df = await fetch_candles(symbol, tf, limit=1000)
             if df is not None and not df.empty:
                 df.to_csv(f"data/{symbol}_{tf}.csv", index=False)
-                print(f"Saved {len(df)} candles for {symbol} {tf}")
+                logger.info(f"Saved {len(df)} candles for {symbol} {tf}")
             await asyncio.sleep(0.1)
 
 if __name__ == "__main__":
