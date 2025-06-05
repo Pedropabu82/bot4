@@ -7,6 +7,27 @@ package (version `0.6.3`). Make sure you install dependencies from
 `requirements.txt` rather than the similarly named `TA-Lib` package which may
 lead to import errors.
 
+## Installing the TA-Lib development library
+
+Before installing the Python packages you need the underlying TA‑Lib system
+library. On Debian based systems the library can be built with the same steps
+used in the CI workflow:
+
+```bash
+sudo apt-get update
+sudo apt-get install -y build-essential wget
+wget -q http://prdownloads.sourceforge.net/ta-lib/ta-lib-0.4.0-src.tar.gz
+tar -xzf ta-lib-0.4.0-src.tar.gz
+cd ta-lib
+./configure --prefix=/usr
+make
+sudo make install
+cd ..
+```
+
+After this one-time setup you can install the Python bindings via
+`pip install -r requirements.txt` as described below.
+
 ## Setup
 
 ```bash
