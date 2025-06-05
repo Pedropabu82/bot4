@@ -74,8 +74,11 @@ parameters manually in `config.json` if desired.
 
 ## Sample data
 
-Example trade logs are stored in the `data/` directory. The scripts
-expect `data/trade_log.csv` to exist and will append new entries to it.
+Example trade logs are stored in the `data/` directory. The repository
+includes a small sample file called `data/trade_log_sample.csv`.
+When running the scripts you should create `data/trade_log.csv` (you
+can copy the sample file) as new entries will be appended there during
+execution.
 
 ## Logging
 
