@@ -38,6 +38,9 @@ class LiveMAStrategy:
         self.max_trades = config.get('max_trades_per_day', 5)
         self.daily_trades = {symbol: [] for symbol in self.symbols}
         self.min_qty = {'BTCUSDT': 0.001, 'ETHUSDT': 0.01, 'SOLUSDT': 0.1}
+        self.sl_order_id = {symbol: None for symbol in self.symbols}
+        self.tp_order_id = {symbol: None for symbol in self.symbols}
+        self.entry_tf = {symbol: None for symbol in self.symbols}
         self.signal_engine = SignalEngine()
         self.min_ai_confidence = config.get('min_ai_confidence', 0.5)
         self.maker_offset = config.get('maker_offset', 0)
@@ -176,8 +179,50 @@ class LiveMAStrategy:
             else: short+=1.5
         return long-short
 
+    async def check_exit_fills(self, symbol):
+        """Poll stored TP/SL orders and log trade if filled."""
+        sl_id = self.sl_order_id.get(symbol)
+        tp_id = self.tp_order_id.get(symbol)
+        exit_order = None
+        exit_from_sl = False
+        try:
+            if sl_id:
+                info = await self.client.exchange.fetch_order(sl_id, symbol)
+                if info.get('status') in ['closed', 'FILLED']:
+                    exit_order = info
+                    exit_from_sl = True
+            if tp_id and exit_order is None:
+                info = await self.client.exchange.fetch_order(tp_id, symbol)
+                if info.get('status') in ['closed', 'FILLED']:
+                    exit_order = info
+        except Exception as e:
+            logger.error(f"Failed polling exit orders for {symbol}: {e}")
+            return
+
+        if exit_order:
+            exit_price = float(exit_order.get('avgPrice') or exit_order.get('price'))
+            entry = self.entry_price[symbol]
+            side = self.position_side[symbol]
+            tf = self.entry_tf.get(symbol, 'unknown')
+            result = 'win' if (side == 'long' and exit_price > entry) or (side == 'short' and exit_price < entry) else 'loss'
+            self.log_trade(symbol, 'EXIT', entry, exit_price, result, tf)
+            other_id = tp_id if exit_from_sl else sl_id
+            if other_id:
+                try:
+                    await self.client.exchange.cancel_order(other_id, symbol)
+                except Exception:
+                    pass
+            self.sl_order_id[symbol] = None
+            self.tp_order_id[symbol] = None
+            self.entry_tf[symbol] = None
+            self.position_side[symbol] = None
+            self.entry_price[symbol] = None
+            self.quantity[symbol] = None
+            self.unrealized_pnl[symbol] = 0
+
     async def sync_position(self, symbol):
         try:
+            await self.check_exit_fills(symbol)
             pos=await self.client.exchange.fapiPrivateV2GetPositionRisk({'symbol':symbol.replace('/','')})
             orders=await self.client.exchange.fetch_open_orders(symbol)
             active=False
@@ -194,7 +239,9 @@ class LiveMAStrategy:
                             await self.set_sl(symbol); await self.set_tp(symbol)
                     break
             if not active and self.position_side[symbol] is not None:
-                self.position_side[symbol]=None; self.entry_price[symbol]=None; self.quantity[symbol]=None; self.unrealized_pnl[symbol]=0
+                await self.check_exit_fills(symbol)
+                if self.position_side[symbol] is not None:
+                    self.position_side[symbol]=None; self.entry_price[symbol]=None; self.quantity[symbol]=None; self.unrealized_pnl[symbol]=0
             for o in orders:
                 if o['status']=='open' and o['type'].upper() not in ['STOP_MARKET','TAKE_PROFIT_MARKET']:
                     await self.client.exchange.cancel_order(o['id'],symbol)
@@ -250,6 +297,8 @@ class LiveMAStrategy:
         await self.sync_position(symbol)
         if self.position_side[symbol] or await self.has_open(symbol):
             return
+        self.sl_order_id[symbol] = None
+        self.tp_order_id[symbol] = None
         if not self.signal_priority:
             if not await self.validate_liquidity(symbol, qty):
                 return
@@ -278,6 +327,7 @@ class LiveMAStrategy:
                 if st['status'] in ['closed','FILLED']:
                     self.position_side[symbol]=side; self.entry_price[symbol]=float(st.get('price') or st.get('avgPrice')); self.quantity[symbol]=qty
                     await self.set_sl(symbol); await self.set_tp(symbol)
+                    self.entry_tf[symbol]=tf
                     self.daily_trades[symbol].append(datetime.now()); self.cooldown[symbol]=datetime.now()+timedelta(minutes=self.calculate_cooldown(symbol,tf))
                     self.log_trade(symbol,'ENTRY',self.entry_price[symbol],0,'open',tf); return
                 if st['status']=='CANCELED':
@@ -307,6 +357,7 @@ class LiveMAStrategy:
             params={'stopPrice':sl,'reduceOnly':True,'timeInForce':'GTC'}
             try:
                 o=await self.client.exchange.create_order(symbol,'STOP_MARKET','sell' if self.position_side[symbol]=='long' else 'buy',round(self.quantity[symbol],self.quantity_precision[symbol]),None,params)
+                self.sl_order_id[symbol]=o.get('id')
                 return
             except Exception:
                 await asyncio.sleep(2)
@@ -320,7 +371,8 @@ class LiveMAStrategy:
                 tp=round(self.entry_price[symbol]*(1.05 if self.position_side[symbol]=='long' else 0.95),self.price_precision[symbol])
             params={'stopPrice':tp,'reduceOnly':True,'timeInForce':'GTC'}
             try:
-                await self.client.exchange.create_order(symbol,'TAKE_PROFIT_MARKET','sell' if self.position_side[symbol]=='long' else 'buy',round(self.quantity[symbol],self.quantity_precision[symbol]),None,params)
+                o=await self.client.exchange.create_order(symbol,'TAKE_PROFIT_MARKET','sell' if self.position_side[symbol]=='long' else 'buy',round(self.quantity[symbol],self.quantity_precision[symbol]),None,params)
+                self.tp_order_id[symbol]=o.get('id')
                 return
             except Exception:
                 await asyncio.sleep(2)
@@ -352,6 +404,7 @@ class LiveMAStrategy:
             result='win' if (self.position_side[symbol]=='long' and exit_price>entry) or (self.position_side[symbol]=='short' and exit_price<entry) else 'loss'
             self.log_trade(symbol,'EXIT',entry,exit_price,result,'unknown')
             self.position_side[symbol]=None; self.entry_price[symbol]=None; self.quantity[symbol]=None; self.unrealized_pnl[symbol]=0
+            self.sl_order_id[symbol]=None; self.tp_order_id[symbol]=None; self.entry_tf[symbol]=None
         except: await self.sync_position(symbol)
 
     def log_trade(self,symbol,trade_type,entry,exit_price,result,timeframe):
