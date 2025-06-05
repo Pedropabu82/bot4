@@ -16,7 +16,8 @@ def extract_features(
     Parameters
     ----------
     df : pd.DataFrame
-        Candle data with columns ``open``, ``high``, ``low``, ``close`` and ``volume``.
+        Candle data with columns ``open``, ``high``, ``low``,
+        ``close`` and ``volume``.
     ema_short : int, optional
         Period for the short exponential moving average.
     ema_long : int, optional
@@ -31,9 +32,13 @@ def extract_features(
     features['macd'] = macd
     features['macdsignal'] = macdsignal
     features['rsi'] = talib.RSI(df['close'], timeperiod=14)
-    features['adx'] = talib.ADX(df['high'], df['low'], df['close'], timeperiod=14)
+    features['adx'] = talib.ADX(
+        df['high'], df['low'], df['close'], timeperiod=14
+    )
     features['obv'] = talib.OBV(df['close'], df['volume'])
-    features['atr'] = talib.ATR(df['high'], df['low'], df['close'], timeperiod=14)
+    features['atr'] = talib.ATR(
+        df['high'], df['low'], df['close'], timeperiod=14
+    )
 
     upper, middle, lower = talib.BBANDS(
         df['close'], timeperiod=bb_period, nbdevup=bb_k, nbdevdn=bb_k, matype=0
