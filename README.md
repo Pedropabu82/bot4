@@ -85,15 +85,17 @@ Each symbol has its own indicator configuration inside `config.json`. The
 when called by the various scripts. Example:
 
 ```json
-"indicators": {
+{
+  "indicators": {
     "ETHUSDT": {
-        "ema_short": 8,
-        "ema_long": 21,
-        "rsi": 10,
-        "macd_fast": 7,
-        "macd_slow": 19,
-        "macd_signal": 5
+      "ema_short": 8,
+      "ema_long": 21,
+      "rsi": 10,
+      "macd_fast": 7,
+      "macd_slow": 19,
+      "macd_signal": 5
     }
+  }
 }
 ```
 ## Indicator optimization
