@@ -65,6 +65,7 @@ Modes available via the `mode` key in `config.json`:
 * `bb_k` - standard deviation multiplier for Bollinger Bands (default `2`)
 * `stoch_k_period` - K period for the Stochastic Oscillator (default `14`)
 * `stoch_d_period` - D period for the Stochastic Oscillator (default `3`)
+* `signal_priority` - when `true`, bypass AI and liquidity checks so raw signals trigger trades immediately
 * Spread and depth are automatically checked before orders to avoid poor fills
 * The AI model expects the following features: `ema_short`, `ema_long`, `macd`, `macdsignal`, `rsi`, `adx`, `obv`, `atr`, `volume`, `bb_upper`, `bb_middle`, `bb_lower`, `stoch_k`, `stoch_d`, `vwap`
 ## Indicator optimization
@@ -77,8 +78,11 @@ parameters manually in `config.json` if desired.
 
 ## Sample data
 
-Example trade logs are stored in the `data/` directory. The scripts
-expect `data/trade_log.csv` to exist and will append new entries to it.
+Example trade logs are stored in the `data/` directory. The repository
+includes a small sample file called `data/trade_log_sample.csv`.
+When running the scripts you should create `data/trade_log.csv` (you
+can copy the sample file) as new entries will be appended there during
+execution.
 
 ## Logging
 
