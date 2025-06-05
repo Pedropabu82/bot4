@@ -70,6 +70,8 @@ Earlier versions shipped with a standalone script called
 `optimize_indicators.py` to automatically tune moving averages and RSI
 periods. The script was incomplete and has been removed. Adjust indicator
 parameters manually in `config.json` if desired.
+Each symbol entry also supports `macd_fast`, `macd_slow` and
+`macd_signal` values used when calculating MACD.
 
 
 ## Sample data

@@ -114,7 +114,13 @@ class LiveMAStrategy:
         long=short=0
         if ema_s.iloc[-1]>ema_l.iloc[-1]: long+=2
         elif ema_s.iloc[-1]<ema_l.iloc[-1]: short+=2
-        macd,signal,_=talib.MACD(df['close'],12,26,9)
+        params = self.config['indicators'][symbol]
+        macd, signal, _ = talib.MACD(
+            df['close'],
+            fastperiod=params.get('macd_fast', 12),
+            slowperiod=params.get('macd_slow', 26),
+            signalperiod=params.get('macd_signal', 9),
+        )
         if macd.iloc[-1]>signal.iloc[-1]: long+=1
         elif macd.iloc[-1]<signal.iloc[-1]: short+=1
         rsi=talib.RSI(df['close'],timeperiod=self.config['indicators'][symbol].get('rsi',14))
@@ -150,9 +156,17 @@ class LiveMAStrategy:
         ema_l=talib.EMA(df['close'],timeperiod=self.config['indicators'][symbol].get('ema_long',26))
         if ema_s.iloc[-1]>ema_l.iloc[-1]: long+=2
         elif ema_s.iloc[-1]<ema_l.iloc[-1]: short+=2
-        macd,signal,_=talib.MACD(df['close'],12,26,9)
-        if macd.iloc[-1]>signal.iloc[-1]: long+=1
-        elif macd.iloc[-1]<signal.iloc[-1]: short+=1
+        params = self.config['indicators'][symbol]
+        macd, signal, _ = talib.MACD(
+            df['close'],
+            fastperiod=params.get('macd_fast', 12),
+            slowperiod=params.get('macd_slow', 26),
+            signalperiod=params.get('macd_signal', 9),
+        )
+        if macd.iloc[-1] > signal.iloc[-1]:
+            long += 1
+        elif macd.iloc[-1] < signal.iloc[-1]:
+            short += 1
         rsi=talib.RSI(df['close'],timeperiod=self.config['indicators'][symbol].get('rsi',14))
         if rsi.iloc[-1]>70: short+=1
         elif rsi.iloc[-1]<30: long+=1
@@ -213,7 +227,13 @@ class LiveMAStrategy:
             if df.empty or len(df) < 30:
                 return True
             ema = talib.EMA(df['close'], timeperiod=12).iloc[-1]
-            macd, _, _ = talib.MACD(df['close'], 12, 26, 9)
+            params = self.config['indicators'][symbol]
+            macd, _, _ = talib.MACD(
+                df['close'],
+                fastperiod=params.get('macd_fast', 12),
+                slowperiod=params.get('macd_slow', 26),
+                signalperiod=params.get('macd_signal', 9),
+            )
             macd_val = macd.iloc[-1]
             rsi = talib.RSI(df['close'], 14).iloc[-1]
             adx = talib.ADX(df['high'], df['low'], df['close'], 14).iloc[-1]

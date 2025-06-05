@@ -1,5 +1,6 @@
 """Retrain the XGBoost model automatically from logged trades."""
 
+import json
 import pandas as pd
 import numpy as np
 import ccxt
@@ -34,6 +35,9 @@ def train_from_log(trade_log='data/trade_log.csv'):
         logger.error(f"Arquivo {trade_log} não encontrado.")
         return
 
+    with open('config.json', 'r') as f:
+        cfg = json.load(f)
+
     trades = pd.read_csv(trade_log)
     trades = trades.dropna()
     trades = trades[trades['type'] == 'ENTRY']
@@ -56,7 +60,13 @@ def train_from_log(trade_log='data/trade_log.csv'):
             logger.warning(f"Dados vazios para {symbol} {timeframe}, pulando...")
             continue
 
-        feats = extract_features(df)
+        macd_params = cfg.get('indicators', {}).get(symbol, {})
+        feats = extract_features(
+            df,
+            macd_fast=macd_params.get('macd_fast', 12),
+            macd_slow=macd_params.get('macd_slow', 26),
+            macd_signal=macd_params.get('macd_signal', 9),
+        )
         if feats.empty:
             logger.warning(f"Features vazias para {symbol} {timeframe}, pulando...")
             continue
