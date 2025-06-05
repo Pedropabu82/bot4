@@ -61,6 +61,7 @@ Modes available via the `mode` key in `config.json`:
 
 * `min_ai_confidence` - probability threshold (0-1) required by the AI model to allow an entry
 * `maker_offset` - fraction added/subtracted from best bid/ask when submitting post-only orders (default `0`)
+* `signal_priority` - when `true`, bypass AI and liquidity checks so raw signals trigger trades immediately
 * Spread and depth are automatically checked before orders to avoid poor fills
 * The AI model expects the following features: `ema_short`, `ema_long`, `macd`,
   `macdsignal`, `rsi`, `adx`, `obv`, `atr`, `volume`
