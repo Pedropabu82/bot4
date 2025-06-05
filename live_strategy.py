@@ -107,6 +107,16 @@ class LiveMAStrategy:
         for tf,df in self.data[symbol].items():
             df.iat[-1,df.columns.get_loc('close')] = float(tick)
 
+    def _calculate_macd(self, symbol: str, df: pd.DataFrame):
+        """Return MACD values using configured periods for the symbol."""
+        ind = self.config.get("indicators", {}).get(symbol, {})
+        fast = ind.get("macd_fast", 12)
+        slow = ind.get("macd_slow", 26)
+        signal = ind.get("macd_signal", 9)
+        return talib.MACD(
+            df["close"], fastperiod=fast, slowperiod=slow, signalperiod=signal
+        )
+
     def get_signal_for_timeframe(self, symbol, timeframe):
         df = self.data[symbol].get(timeframe,pd.DataFrame())
         if len(df)<30: return None
@@ -115,7 +125,7 @@ class LiveMAStrategy:
         long=short=0
         if ema_s.iloc[-1]>ema_l.iloc[-1]: long+=2
         elif ema_s.iloc[-1]<ema_l.iloc[-1]: short+=2
-        macd,signal,_=talib.MACD(df['close'],12,26,9)
+        macd, signal, _ = self._calculate_macd(symbol, df)
         if macd.iloc[-1]>signal.iloc[-1]: long+=1
         elif macd.iloc[-1]<signal.iloc[-1]: short+=1
         rsi=talib.RSI(df['close'],timeperiod=self.config['indicators'][symbol].get('rsi',14))
@@ -151,9 +161,11 @@ class LiveMAStrategy:
         ema_l=talib.EMA(df['close'],timeperiod=self.config['indicators'][symbol].get('ema_long',26))
         if ema_s.iloc[-1]>ema_l.iloc[-1]: long+=2
         elif ema_s.iloc[-1]<ema_l.iloc[-1]: short+=2
-        macd,signal,_=talib.MACD(df['close'],12,26,9)
-        if macd.iloc[-1]>signal.iloc[-1]: long+=1
-        elif macd.iloc[-1]<signal.iloc[-1]: short+=1
+        macd, signal, _ = self._calculate_macd(symbol, df)
+        if macd.iloc[-1] > signal.iloc[-1]:
+            long += 1
+        elif macd.iloc[-1] < signal.iloc[-1]:
+            short += 1
         rsi=talib.RSI(df['close'],timeperiod=self.config['indicators'][symbol].get('rsi',14))
         if rsi.iloc[-1]>70: short+=1
         elif rsi.iloc[-1]<30: long+=1
@@ -221,7 +233,7 @@ class LiveMAStrategy:
                 df['close'],
                 timeperiod=self.config['indicators'][symbol].get('ema_long', 26)
             ).iloc[-1]
-            macd, macdsignal, _ = talib.MACD(df['close'], 12, 26, 9)
+            macd, macdsignal, _ = self._calculate_macd(symbol, df)
             macd_val = macd.iloc[-1]
             macdsignal_val = macdsignal.iloc[-1]
             rsi = talib.RSI(df['close'], 14).iloc[-1]
