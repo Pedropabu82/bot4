@@ -9,23 +9,23 @@ from live_strategy import LiveMAStrategy
 from backtest_engine import simulate_trades
 from websocket_client import start_streams
 
-# Configurar logging para console e arquivo
-logging.basicConfig(
-    level=logging.DEBUG,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler('bot.log'),
-        logging.StreamHandler()
-    ]
-)
-
 async def main():
     ws_task = None
     try:
-        logger = logging.getLogger(__name__)
-        logger.info("Starting bot...")
         with open('config.json', 'r') as f:
             cfg = json.load(f)
+
+        logging.basicConfig(
+            level=getattr(logging, cfg.get("log_level", "INFO").upper()),
+            format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+            handlers=[
+                logging.FileHandler('bot.log'),
+                logging.StreamHandler()
+            ]
+        )
+
+        logger = logging.getLogger(__name__)
+        logger.info("Starting bot...")
         cfg['api_key'] = os.environ.get('BINANCE_API_KEY', cfg.get('api_key'))
         cfg['api_secret'] = os.environ.get('BINANCE_API_SECRET', cfg.get('api_secret'))
         logger.debug(f"Config loaded: {cfg}")

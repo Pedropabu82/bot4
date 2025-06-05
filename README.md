@@ -75,6 +75,7 @@ Modes available via the `mode` key in `config.json`:
 * `stoch_k_period` - K period for the Stochastic Oscillator (default `14`)
 * `stoch_d_period` - D period for the Stochastic Oscillator (default `3`)
 * `signal_priority` - when `true`, bypass AI and liquidity checks so raw signals trigger trades immediately
+* `log_level` - logging verbosity level (default `INFO`)
 * Spread and depth are automatically checked before orders to avoid poor fills
 * The AI model expects the following features: `ema_short`, `ema_long`, `macd`, `macdsignal`, `rsi`, `adx`, `obv`, `atr`, `volume`, `bb_upper`, `bb_middle`, `bb_lower`, `stoch_k`, `stoch_d`, `vwap`
 
