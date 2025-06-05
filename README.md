@@ -45,4 +45,8 @@ All utilities now rely on Python's `logging` module. When running
 `fetch_ohlcv.py`, log messages are written to `bot.log` and also
 displayed in the console.
 
-Backtests require data in this file; if it's empty the results will also be empty.
+Backtests require data in this file; if it's empty, the results will also be empty.
+
+## License
+
+This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.
