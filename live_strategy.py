@@ -9,6 +9,7 @@ from datetime import datetime, timedelta
 import traceback
 from auto_retrain import train_from_log
 from signal_engine import SignalEngine
+from features import extract_features
 
 logger = logging.getLogger(__name__)
 
@@ -220,29 +221,10 @@ class LiveMAStrategy:
             df = self.data[symbol].get(timeframe, pd.DataFrame())
             if df.empty or len(df) < 30:
                 return True
-            ind_cfg = self.config['indicators'].get(symbol, {})
-            ema_period = ind_cfg.get('ema_short', 12)
-            ema = talib.EMA(df['close'], timeperiod=ema_period).iloc[-1]
-            macd_fast = ind_cfg.get('macd_fast', 12)
-            macd_slow = ind_cfg.get('macd_slow', 26)
-            macd_sig = ind_cfg.get('macd_signal', 9)
-            macd, _, _ = talib.MACD(df['close'], macd_fast, macd_slow, macd_sig)
-            macd_val = macd.iloc[-1]
-            rsi_period = ind_cfg.get('rsi', 14)
-            rsi = talib.RSI(df['close'], rsi_period).iloc[-1]
-            adx = talib.ADX(df['high'], df['low'], df['close'], 14).iloc[-1]
-            obv = talib.OBV(df['close'], df['volume']).iloc[-1]
-            atr = talib.ATR(df['high'], df['low'], df['close'], 14).iloc[-1]
-            volume = df['volume'].iloc[-1]
-            features = {
-                'ema': ema,
-                'macd': macd_val,
-                'rsi': rsi,
-                'adx': adx,
-                'obv': obv,
-                'atr': atr,
-                'volume': volume,
-            }
+            feats = extract_features(df, symbol, self.config)
+            if feats.empty:
+                return True
+            features = feats.iloc[-1].to_dict()
             result = self.signal_engine.get_signal_for_timeframe(features, symbol=symbol, timeframe=timeframe)
             return result['ok'] and result['confidence'] >= self.min_ai_confidence
         except Exception as e:
