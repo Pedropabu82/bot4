@@ -42,6 +42,13 @@ Modes available via the `mode` key in `config.json`:
 * Spread and depth are automatically checked before orders to avoid poor fills
 * The AI model expects the following features: `ema_short`, `ema_long`, `macd`,
   `macdsignal`, `rsi`, `adx`, `obv`, `atr`, `volume`
+## Indicator optimization
+
+Earlier versions shipped with a standalone script called
+`optimize_indicators.py` to automatically tune moving averages and RSI
+periods. The script was incomplete and has been removed. Adjust indicator
+parameters manually in `config.json` if desired.
+
 
 ## Sample data
 
