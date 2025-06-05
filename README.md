@@ -12,11 +12,14 @@ lead to import errors.
 ```bash
 pip install -r requirements.txt
 ```
-Additional dependencies used by optional features include `xgboost`, `scikit-learn`, `joblib` and `websockets`.
+Additional dependencies used by optional features include `xgboost`,
+`scikit-learn`, `joblib` and `websockets`.
 
 ## Usage
 
-Edit `config.json` with your API credentials then run. Alternatively set the `BINANCE_API_KEY` and `BINANCE_API_SECRET` environment variables to avoid storing keys in the file:
+Edit `config.json` with your API credentials then run. Alternatively set the
+`BINANCE_API_KEY` and `BINANCE_API_SECRET` environment variables to avoid
+storing keys in the file:
 ```bash
 export BINANCE_API_KEY=your_key
 export BINANCE_API_SECRET=your_secret
