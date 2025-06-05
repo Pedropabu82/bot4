@@ -6,6 +6,7 @@ import xgboost as xgb
 import talib
 import joblib
 import logging
+import json
 from sklearn.model_selection import StratifiedKFold, cross_val_score
 from features import extract_features
 
@@ -14,9 +15,15 @@ logger = logging.getLogger(__name__)
 
 
 
-def train_model(log_path='data/trade_log.csv', model_output='model_xgb.pkl'):
+def train_model(log_path='data/trade_log.csv', model_output='model_xgb.pkl', config_file='config.json'):
     try:
         trades = pd.read_csv(log_path)
+        with open(config_file, 'r') as f:
+            cfg = json.load(f)
+        bb_period = cfg.get('bb_period', 20)
+        bb_k = cfg.get('bb_k', 2)
+        stoch_k_period = cfg.get('stoch_k_period', 14)
+        stoch_d_period = cfg.get('stoch_d_period', 3)
         trades = trades.dropna()
         trades = trades[trades['type'] == 'ENTRY']
 
@@ -33,7 +40,13 @@ def train_model(log_path='data/trade_log.csv', model_output='model_xgb.pkl'):
                     'volume': [row['volume']]
                 })
                 df = pd.concat([df] * 150, ignore_index=True)  # Simular série temporal
-                feats = extract_features(df)
+                feats = extract_features(
+                    df,
+                    bb_period=bb_period,
+                    bb_k=bb_k,
+                    stoch_k_period=stoch_k_period,
+                    stoch_d_period=stoch_d_period,
+                )
                 if feats.empty:
                     continue
                 X_list.append(feats.iloc[-1])

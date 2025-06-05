@@ -32,7 +32,6 @@ htmlcov/
 
 # Logs and local data
 *.log
-# Ignore trade log CSVs
-trade_log*.csv
-data/trade_log*.csv
+data/trade_log.csv
+data/trade_log_backup.csv
 model_xgb.pkl
