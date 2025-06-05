@@ -80,17 +80,20 @@ Modes available via the `mode` key in `config.json`:
 
 ### Indicators
 
-Each symbol has its own indicator configuration inside `config.json`. Example:
+Each symbol has its own indicator configuration inside `config.json`. The
+`extract_features` helper can read these periods via the `indicators`
+section so the feature generator automatically uses the values defined per
+symbol.
 
 ```json
 "indicators": {
     "BTCUSDT": {
-        "ema_short": 12,
-        "ema_long": 26,
-        "rsi": 14,
-        "macd_fast": 12,
-        "macd_slow": 26,
-        "macd_signal": 9
+        "ema_short": 10,
+        "ema_long": 30,
+        "rsi": 10,
+        "macd_fast": 10,
+        "macd_slow": 30,
+        "macd_signal": 7
     }
 }
 ```
