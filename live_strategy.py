@@ -228,17 +228,19 @@ class LiveMAStrategy:
                 return True
             feats = extract_features(
                 df,
-                bb_period=self.config.get("bb_period", 20),
-                bb_k=self.config.get("bb_k", 2),
-                stoch_k_period=self.config.get("stoch_k_period", 14),
-                stoch_d_period=self.config.get("stoch_d_period", 3),
-                ema_short=self.config["indicators"][symbol].get("ema_short", 12),
-                ema_long=self.config["indicators"][symbol].get("ema_long", 26),
+        codex/crear-método-auxiliar-para-macd
+                bb_period=self.config.get('bb_period', 20),
+                bb_k=self.config.get('bb_k', 2),
+                stoch_k_period=self.config.get('stoch_k_period', 14),
+                stoch_d_period=self.config.get('stoch_d_period', 3),
+                ema_short=self.config['indicators'][symbol].get('ema_short', 12),
+                ema_long=self.config['indicators'][symbol].get('ema_long', 26),
             )
             features = feats.iloc[-1].to_dict()
             macd, macdsignal, _ = self._calculate_macd(symbol, df)
-            features["macd"] = macd.iloc[-1]
-            features["macdsignal"] = macdsignal.iloc[-1]
+            features['macd'] = macd.iloc[-1]
+            features['macdsignal'] = macdsignal.iloc[-1]
+
             result = self.signal_engine.get_signal_for_timeframe(features, symbol=symbol, timeframe=timeframe)
             return result['ok'] and result['confidence'] >= self.min_ai_confidence
         except Exception as e:
@@ -330,9 +332,11 @@ class LiveMAStrategy:
         sl=self.entry_price[symbol]*(1-self.config['sl'].get(symbol,0.025)/self.leverage[symbol]) if self.position_side[symbol]=='long' else self.entry_price[symbol]*(1+self.config['sl'].get(symbol,0.025)/self.leverage[symbol])
         return round(tp,self.price_precision[symbol]),round(sl,self.price_precision[symbol])
 
-    async def update_positions(self,symbol):
-        try: await self.sync_position(symbol)
-        except: pass
+    async def update_positions(self, symbol):
+        try:
+            await self.sync_position(symbol)
+        except Exception as e:
+            logger.error(f"Failed to update positions for {symbol}: {e}")
 
     async def close_position(self,symbol):
         try:
@@ -354,8 +358,10 @@ class LiveMAStrategy:
     def log_trade(self,symbol,trade_type,entry,exit_price,result,timeframe):
         row=[datetime.now().strftime('%Y-%m-%d %H:%M:%S'),symbol,timeframe,trade_type,entry,exit_price,((exit_price-entry)/entry*100 if trade_type=='EXIT' else 0),result]
         try:
-            with open('data/trade_log.csv','a') as f: f.write(','.join(map(str,row))+'\n')
-        except: pass
+            with open('data/trade_log.csv','a') as f:
+                f.write(','.join(map(str, row)) + '\n')
+        except Exception as e:
+            logger.error(f"Failed to log trade for {symbol}: {e}")
 
     def get_recent_trades(self,symbol=None):
         try:
