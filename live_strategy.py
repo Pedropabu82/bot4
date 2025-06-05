@@ -311,7 +311,7 @@ class LiveMAStrategy:
             _,sl=self.calculate_tp_sl(symbol)
             if abs(sl-self.entry_price[symbol])/self.entry_price[symbol]>0.05:
                 sl=round(self.entry_price[symbol]*(0.95 if self.position_side[symbol]=='long' else 1.05),self.price_precision[symbol])
-            params={'stopPrice':sl,'reduceOnly':True,'timeInForce':'GTC'}
+            params={'stopPrice':sl,'reduceOnly':True,'timeInForce':'GTC','closePosition':True}
             try:
                 o=await self.client.exchange.create_order(symbol,'STOP_MARKET','sell' if self.position_side[symbol]=='long' else 'buy',round(self.quantity[symbol],self.quantity_precision[symbol]),None,params)
                 return
@@ -325,7 +325,7 @@ class LiveMAStrategy:
             tp,_=self.calculate_tp_sl(symbol)
             if abs(tp-self.entry_price[symbol])/self.entry_price[symbol]>0.05:
                 tp=round(self.entry_price[symbol]*(1.05 if self.position_side[symbol]=='long' else 0.95),self.price_precision[symbol])
-            params={'stopPrice':tp,'reduceOnly':True,'timeInForce':'GTC'}
+            params={'stopPrice':tp,'reduceOnly':True,'timeInForce':'GTC','closePosition':True}
             try:
                 await self.client.exchange.create_order(symbol,'TAKE_PROFIT_MARKET','sell' if self.position_side[symbol]=='long' else 'buy',round(self.quantity[symbol],self.quantity_precision[symbol]),None,params)
                 return
