@@ -1,11 +1,19 @@
+import sys, os
+import warnings
+import pytest
+pytestmark = pytest.mark.filterwarnings("ignore")
+warnings.filterwarnings("ignore")
+sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 import pandas as pd
 import talib
 
 from features import extract_features
 from live_strategy import LiveMAStrategy
 
+
 class DummyClient:
     pass
+
 
 class DummySignalEngine:
     def __init__(self):
@@ -14,6 +22,7 @@ class DummySignalEngine:
     def get_signal_for_timeframe(self, data, **kwargs):
         self.calls.append((data, kwargs))
         return {"ok": True, "confidence": 1.0}
+
 
 def make_df(n=40):
     return pd.DataFrame({
@@ -50,10 +59,26 @@ def test_ai_accepts_trade_passes_config(monkeypatch):
 
     captured = {}
 
-    def fake_extract(df, bb_period, bb_k, stoch_k_period, stoch_d_period, ema_short, ema_long):
+    def fake_extract(
+        df,
+        bb_period,
+        bb_k,
+        stoch_k_period,
+        stoch_d_period,
+        ema_short,
+        ema_long,
+    ):
         captured['ema_short'] = ema_short
         captured['ema_long'] = ema_long
-        return extract_features(df.tail(30), bb_period, bb_k, stoch_k_period, stoch_d_period, ema_short, ema_long)
+        return extract_features(
+            df.tail(30),
+            bb_period,
+            bb_k,
+            stoch_k_period,
+            stoch_d_period,
+            ema_short,
+            ema_long,
+        )
 
     monkeypatch.setattr('live_strategy.extract_features', fake_extract)
 

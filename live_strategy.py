@@ -228,7 +228,6 @@ class LiveMAStrategy:
                 return True
             feats = extract_features(
                 df,
-        codex/crear-método-auxiliar-para-macd
                 bb_period=self.config.get('bb_period', 20),
                 bb_k=self.config.get('bb_k', 2),
                 stoch_k_period=self.config.get('stoch_k_period', 14),
