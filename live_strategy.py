@@ -422,3 +422,4 @@ class LiveMAStrategy:
                 await asyncio.sleep(60)
         finally:
             await self.client.close()
+
