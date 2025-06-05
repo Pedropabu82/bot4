@@ -64,6 +64,9 @@ Modes available via the `mode` key in `config.json`:
 * Spread and depth are automatically checked before orders to avoid poor fills
 * The AI model expects the following features: `ema_short`, `ema_long`, `macd`,
   `macdsignal`, `rsi`, `adx`, `obv`, `atr`, `volume`
+* EMA, RSI and MACD periods can be configured per symbol under the
+  `indicators` key in `config.json`. Missing values fall back to reasonable
+  defaults (9/21 for EMAs, 14 for RSI and 12/26/9 for MACD).
 ## Indicator optimization
 
 Earlier versions shipped with a standalone script called
