@@ -79,6 +79,23 @@ Modes available via the `mode` key in `config.json`:
 * `signal_priority` - when `true`, bypass AI and liquidity checks so raw signals trigger trades immediately
 * Spread and depth are automatically checked before orders to avoid poor fills
 * The AI model expects the following features: `ema_short`, `ema_long`, `macd`, `macdsignal`, `rsi`, `adx`, `obv`, `atr`, `volume`, `bb_upper`, `bb_middle`, `bb_lower`, `stoch_k`, `stoch_d`, `vwap`
+
+### Indicators
+
+Each symbol has its own indicator configuration inside `config.json`. Example:
+
+```json
+"indicators": {
+    "BTCUSDT": {
+        "ema_short": 12,
+        "ema_long": 26,
+        "rsi": 14,
+        "macd_fast": 12,
+        "macd_slow": 26,
+        "macd_signal": 9
+    }
+}
+```
 ## Indicator optimization
 
 Earlier versions shipped with a standalone script called
