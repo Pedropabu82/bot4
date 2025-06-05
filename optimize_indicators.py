@@ -6,6 +6,18 @@ import pandas as pd
 from itertools import product
 from backtest_engine import simulate_trades
 
+
+def configure_logging():
+    """Configure basic logging to file and stdout."""
+    logging.basicConfig(
+        level=logging.DEBUG,
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        handlers=[
+            logging.FileHandler('bot.log'),
+            logging.StreamHandler(),
+        ],
+    )
+
 logger = logging.getLogger(__name__)
 
 class IndicatorOptimizer:
@@ -36,7 +48,7 @@ class IndicatorOptimizer:
             config = original_config.copy()
             config.update(dict(zip(param_grid.keys(), params)))
             self.strategy.config['indicators']['BTCUSDT'] = config
-            metrics, _ = simulate_trades(self.strategy, days=self.backtest_days)
+            metrics, _ = simulate_trades()
             if metrics['Sharpe Ratio'] > best_sharpe:
                 best_sharpe = metrics['Sharpe Ratio']
                 best_params = config.copy()
@@ -45,3 +57,7 @@ class IndicatorOptimizer:
         logger.info(f"Optimized parameters: {best_params}, Sharpe: {best_sharpe}")
         with open('config.json', 'w') as f:
             json.dump(self.strategy.config, f, indent=4)
+
+
+if __name__ == '__main__':
+    configure_logging()
