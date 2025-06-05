@@ -24,6 +24,7 @@ def train_model(log_path='data/trade_log.csv', model_output='model_xgb.pkl', con
         bb_k = cfg.get('bb_k', 2)
         stoch_k_period = cfg.get('stoch_k_period', 14)
         stoch_d_period = cfg.get('stoch_d_period', 3)
+        indicator_cfg = cfg.get('indicators', {})
         trades = trades.dropna()
         trades = trades[trades['type'] == 'ENTRY']
 
@@ -40,12 +41,16 @@ def train_model(log_path='data/trade_log.csv', model_output='model_xgb.pkl', con
                     'volume': [row['volume']]
                 })
                 df = pd.concat([df] * 150, ignore_index=True)  # Simular série temporal
+                ema_short = indicator_cfg.get(row['symbol'], {}).get('ema_short', 9)
+                ema_long = indicator_cfg.get(row['symbol'], {}).get('ema_long', 21)
                 feats = extract_features(
                     df,
                     bb_period=bb_period,
                     bb_k=bb_k,
                     stoch_k_period=stoch_k_period,
                     stoch_d_period=stoch_d_period,
+                    ema_short=ema_short,
+                    ema_long=ema_long,
                 )
                 if feats.empty:
                     continue
