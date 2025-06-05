@@ -13,11 +13,18 @@ lead to import errors.
 pip install -r requirements.txt
 ```
 
+Additional dependencies used by optional features include `xgboost`,
+`scikit-learn`, `joblib` and `websockets`.
+
 ## Usage
 
-Edit `config.json` with your API credentials then run:
+Edit `config.json` with your API credentials then run. Alternatively set the
+`BINANCE_API_KEY` and `BINANCE_API_SECRET` environment variables to avoid
+storing keys in the file:
 
 ```bash
+export BINANCE_API_KEY=your_key
+export BINANCE_API_SECRET=your_secret
 python main.py
 ```
 
@@ -37,3 +44,9 @@ Modes available via the `mode` key in `config.json`:
 Example trade logs are stored in the `data/` directory. The scripts
 expect `data/trade_log.csv` to exist and will append new entries to it.
 Backtests require data in this file; if it's empty the results will also be empty.
+
+## Disclaimer
+
+This project is provided for educational purposes only. Trading
+cryptocurrencies involves significant risk and may result in financial loss.
+Use the code at your own discretion.
