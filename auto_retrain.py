@@ -36,6 +36,22 @@ def train_from_log(trade_log='data/trade_log.csv', config_file='config.json'):
         return
 
     trades = pd.read_csv(trade_log)
+    trades = trades.dropna()
+    trades['result'] = trades['result'].astype(str)
+
+    if 'EXIT' not in trades['type'].unique():
+        logger.warning(
+            "Nenhuma linha de EXIT encontrada no log de trades. "
+            "Somente entradas (ENTRY) estão presentes. O modelo precisa de ambos "
+            "registros para aprender os resultados."
+        )
+
+    trades = trades[(trades['type'] == 'ENTRY') &
+                    (trades['result'].str.lower().isin(['win', 'loss']))]
+    if trades.empty:
+        logger.error("Nenhum trade concluído encontrado no log para treino.")
+        return
+
     with open(config_file, 'r') as f:
         cfg = json.load(f)
     bb_period = cfg.get('bb_period', 20)
@@ -43,8 +59,6 @@ def train_from_log(trade_log='data/trade_log.csv', config_file='config.json'):
     stoch_k_period = cfg.get('stoch_k_period', 14)
     stoch_d_period = cfg.get('stoch_d_period', 3)
     indicator_cfg = cfg.get('indicators', {})
-    trades = trades.dropna()
-    trades = trades[trades['type'] == 'ENTRY']
     logger.info(f"Carregando {len(trades)} trades do log.")
 
     if len(trades) < 10:
