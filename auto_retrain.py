@@ -42,6 +42,7 @@ def train_from_log(trade_log='data/trade_log.csv', config_file='config.json'):
     bb_k = cfg.get('bb_k', 2)
     stoch_k_period = cfg.get('stoch_k_period', 14)
     stoch_d_period = cfg.get('stoch_d_period', 3)
+    indicator_cfg = cfg.get('indicators', {})
     trades = trades.dropna()
     trades = trades[trades['type'] == 'ENTRY']
     logger.info(f"Carregando {len(trades)} trades do log.")
@@ -63,12 +64,16 @@ def train_from_log(trade_log='data/trade_log.csv', config_file='config.json'):
             logger.warning(f"Dados vazios para {symbol} {timeframe}, pulando...")
             continue
 
+        ema_short = indicator_cfg.get(symbol, {}).get('ema_short', 9)
+        ema_long = indicator_cfg.get(symbol, {}).get('ema_long', 21)
         feats = extract_features(
             df,
             bb_period=bb_period,
             bb_k=bb_k,
             stoch_k_period=stoch_k_period,
             stoch_d_period=stoch_d_period,
+            ema_short=ema_short,
+            ema_long=ema_long,
         )
         if feats.empty:
             logger.warning(f"Features vazias para {symbol} {timeframe}, pulando...")
