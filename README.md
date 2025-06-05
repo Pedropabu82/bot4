@@ -53,6 +53,7 @@ All utilities now rely on Python's `logging` module. When running
 `fetch_ohlcv.py`, log messages are written to `bot.log` and also
 displayed in the console.
 
+The log file now begins with the header `timestamp,symbol,timeframe,type,entry_price,exit_price,pnl_pct,result`.
 Backtests require data in this file; if it's empty, the results will also be empty.
 
 ## Disclaimer

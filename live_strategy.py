@@ -5,6 +5,7 @@ import ccxt.async_support as ccxt
 import asyncio
 import logging
 import talib
+import os
 from datetime import datetime, timedelta
 import traceback
 from auto_retrain import train_from_log
@@ -338,10 +339,18 @@ result = self.signal_engine.get_signal_for_timeframe(features, symbol=symbol, ti
     def log_trade(self,symbol,trade_type,entry,exit_price,result,timeframe):
         row=[datetime.now().strftime('%Y-%m-%d %H:%M:%S'),symbol,timeframe,trade_type,entry,exit_price,((exit_price-entry)/entry*100 if trade_type=='EXIT' else 0),result]
         try:
-            with open('data/trade_log.csv','a') as f:
-                f.write(','.join(map(str,row))+'\n')
-        except OSError as e:
-            logger.error(f"Error writing trade log for {symbol}: {e}")
+        log_path = 'data/trade_log.csv'
+        needs_header = not os.path.exists(log_path) or os.path.getsize(log_path) == 0
+
+try:
+    with open(log_path, 'a') as f:
+        if needs_header:
+            f.write('timestamp,symbol,timeframe,type,entry_price,exit_price,pnl_pct,result\n')
+        f.write(','.join(map(str, row)) + '\n')
+except OSError as e:
+    logger.error(f"Error writing trade log for {symbol}: {e}")
+except Exception as e:
+    logger.error(f"Unexpected error writing trade log for {symbol}: {e}")
 
     def get_recent_trades(self,symbol=None):
         try:
