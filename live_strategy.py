@@ -206,15 +206,15 @@ class LiveMAStrategy:
             atr = talib.ATR(df['high'], df['low'], df['close'], 14).iloc[-1]
             volume = df['volume'].iloc[-1]
             features = {
-                'ema': ema,
-                'macd': macd_val,
-                'rsi': rsi,
-                'adx': adx,
-                'obv': obv,
-                'atr': atr,
-                'volume': volume,
-            }
-            result = self.signal_engine.get_signal_for_timeframe(features, symbol=symbol, timeframe=timeframe)
+            'ema': ema,
+            'macd': macd_val,
+            'rsi': rsi,
+            'adx': adx,
+            'obv': obv,
+            'atr': atr,
+            'volume': volume,
+}
+result = self.signal_engine.get_signal_for_timeframe(features, symbol=symbol, timeframe=timeframe)
             return result['ok'] and result['confidence'] >= self.min_ai_confidence
         except Exception as e:
             logger.error(f"AI check failed for {symbol}: {e}")
