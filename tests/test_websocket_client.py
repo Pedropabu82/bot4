@@ -64,14 +64,19 @@ def dummy_connect(*args, **kwargs):
     return DummyConn()
 
 class DummyExchange:
+    def __init__(self):
+        self.modes = []
+
     def set_sandbox_mode(self, mode):
-        pass
+        self.modes.append(mode)
 
     async def close(self):
         pass
 
+created_exchange = DummyExchange()
+
 def dummy_binance(*args, **kwargs):
-    return DummyExchange()
+    return created_exchange
 
 def dummy_fetch(exchange, symbol, timeframe, limit=300):
     return pd.DataFrame([
@@ -89,14 +94,21 @@ async def dummy_sleep(*args, **kwargs):
     return None
 
 @pytest.mark.asyncio
-async def test_start_streams_no_typeerror(monkeypatch):
+@pytest.mark.parametrize("testnet", [True, False])
+async def test_start_streams_modes(monkeypatch, testnet):
+    global created_exchange
+    created_exchange = DummyExchange()
     strategy = DummyStrategy()
     monkeypatch.setattr(websocket_client.websockets, "connect", dummy_connect)
     monkeypatch.setattr(websocket_client.ccxt, "binance", dummy_binance)
     monkeypatch.setattr(websocket_client, "fetch_historical_klines", dummy_fetch)
     monkeypatch.setattr(websocket_client.asyncio, "sleep", dummy_sleep)
 
-    await websocket_client.start_streams(["BTCUSDT"], ["1m"], strategy, ["1m"], {"testnet": True})
+    await websocket_client.start_streams(["BTCUSDT"], ["1m"], strategy, ["1m"], {"testnet": testnet})
 
     assert strategy.tf_calls, "timeframe data not processed"
     assert strategy.tick_calls, "tick data not processed"
+    if testnet:
+        assert created_exchange.modes == [True]
+    else:
+        assert created_exchange.modes == []
