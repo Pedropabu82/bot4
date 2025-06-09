@@ -270,7 +270,7 @@ class LiveMAStrategy:
 
             if not active:
                 # 3) Se não há posição, verifica se uma SL/TP foi preenchida
-                await self.check_exit_fills(symbol)
+                #    (já realizado no passo 1, mantido para compatibilidade)
 
                 # 4) Cancela ordens de SL/TP que ainda estejam abertas
                 for o in orders:
