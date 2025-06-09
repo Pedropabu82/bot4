@@ -55,7 +55,7 @@ def test_extract_features_custom_ema():
 
 def test_ai_accepts_trade_passes_config(monkeypatch):
     config = {
-        'indicators': {'BTCUSDT': {'ema_short': 5, 'ema_long': 10}},
+        'indicators': {'BTCUSDT': {'ema_short': 5, 'ema_long': 10, 'macd_fast': 8, 'macd_slow': 17, 'macd_signal': 5}},
         'bb_period': 20,
         'bb_k': 2,
         'stoch_k_period': 14,
@@ -77,9 +77,15 @@ def test_ai_accepts_trade_passes_config(monkeypatch):
         stoch_d_period,
         ema_short,
         ema_long,
+        macd_fast,
+        macd_slow,
+        macd_signal,
     ):
         captured['ema_short'] = ema_short
         captured['ema_long'] = ema_long
+        captured['macd_fast'] = macd_fast
+        captured['macd_slow'] = macd_slow
+        captured['macd_signal'] = macd_signal
         return extract_features(
             df.tail(30),
             bb_period,
@@ -88,10 +94,16 @@ def test_ai_accepts_trade_passes_config(monkeypatch):
             stoch_d_period,
             ema_short,
             ema_long,
+            macd_fast,
+            macd_slow,
+            macd_signal,
         )
 
     monkeypatch.setattr('live_strategy.extract_features', fake_extract)
 
-    assert strat.ai_accepts_trade('BTCUSDT', '1m')
+    assert strat.ai_accepts_trade('BTCUSDT', '1m', 'long')
     assert captured['ema_short'] == 5
     assert captured['ema_long'] == 10
+    assert captured['macd_fast'] == 8
+    assert captured['macd_slow'] == 17
+    assert captured['macd_signal'] == 5

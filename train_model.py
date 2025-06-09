@@ -41,8 +41,12 @@ def train_model(log_path='data/trade_log.csv', model_output='model_xgb.pkl', con
                     'volume': [row['volume']]
                 })
                 df = pd.concat([df] * 150, ignore_index=True)  # Simular série temporal
-                ema_short = indicator_cfg.get(row['symbol'], {}).get('ema_short', 9)
-                ema_long = indicator_cfg.get(row['symbol'], {}).get('ema_long', 21)
+                ind_cfg = indicator_cfg.get(row['symbol'], {})
+                ema_short = ind_cfg.get('ema_short', 9)
+                ema_long = ind_cfg.get('ema_long', 21)
+                macd_fast = ind_cfg.get('macd_fast', 12)
+                macd_slow = ind_cfg.get('macd_slow', 26)
+                macd_signal = ind_cfg.get('macd_signal', 9)
                 feats = extract_features(
                     df,
                     bb_period=bb_period,
@@ -51,6 +55,9 @@ def train_model(log_path='data/trade_log.csv', model_output='model_xgb.pkl', con
                     stoch_d_period=stoch_d_period,
                     ema_short=ema_short,
                     ema_long=ema_long,
+                    macd_fast=macd_fast,
+                    macd_slow=macd_slow,
+                    macd_signal=macd_signal,
                 )
                 if feats.empty:
                     continue
