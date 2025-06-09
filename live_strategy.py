@@ -220,60 +220,60 @@ class LiveMAStrategy:
             self.quantity[symbol] = None
             self.unrealized_pnl[symbol] = 0
 
-    aasync def sync_position(self, symbol):
-    try:
-        # 1) Registrar possível saída de trade (SL/TP preenchido).
-        await self.check_exit_fills(symbol)
-
-        # 2) Buscar posição atual e ordens abertas
-        pos = await self.client.exchange.fapiPrivateV2GetPositionRisk({'symbol': symbol.replace('/', '')})
-        orders = await self.client.exchange.fetch_open_orders(symbol)
-
-        active = False
-        for p in pos:
-            amt = float(p['positionAmt'])
-            if amt != 0:
-                active = True
-                side = 'long' if amt > 0 else 'short'
-                # Se entra numa posição pela primeira vez ou mudou de direção
-                if self.position_side[symbol] != side:
-                    self.position_side[symbol] = side
-                    self.quantity[symbol] = abs(amt)
-                    self.entry_price[symbol] = float(p['entryPrice'])
-                    self.unrealized_pnl[symbol] = float(p['unRealizedProfit'])
-                    if not any(o['type'].upper() in ['STOP_MARKET', 'TAKE_PROFIT_MARKET'] for o in orders):
-                        await self.set_sl(symbol)
-                        await self.set_tp(symbol)
-                break
-
-        if not active:
-            # 3) Se não há posição, verifica se uma SL/TP foi preenchida
+    async def sync_position(self, symbol):
+        try:
+            # 1) Registrar possível saída de trade (SL/TP preenchido).
             await self.check_exit_fills(symbol)
 
-            # 4) Cancela ordens de SL/TP que ainda estejam abertas
+            # 2) Buscar posição atual e ordens abertas
+            pos = await self.client.exchange.fapiPrivateV2GetPositionRisk({'symbol': symbol.replace('/', '')})
+            orders = await self.client.exchange.fetch_open_orders(symbol)
+
+            active = False
+            for p in pos:
+                amt = float(p['positionAmt'])
+                if amt != 0:
+                    active = True
+                    side = 'long' if amt > 0 else 'short'
+                    # Se entra numa posição pela primeira vez ou mudou de direção
+                    if self.position_side[symbol] != side:
+                        self.position_side[symbol] = side
+                        self.quantity[symbol] = abs(amt)
+                        self.entry_price[symbol] = float(p['entryPrice'])
+                        self.unrealized_pnl[symbol] = float(p['unRealizedProfit'])
+                        if not any(o['type'].upper() in ['STOP_MARKET', 'TAKE_PROFIT_MARKET'] for o in orders):
+                            await self.set_sl(symbol)
+                            await self.set_tp(symbol)
+                    break
+
+            if not active:
+                # 3) Se não há posição, verifica se uma SL/TP foi preenchida
+                await self.check_exit_fills(symbol)
+
+                # 4) Cancela ordens de SL/TP que ainda estejam abertas
+                for o in orders:
+                    if o['status'] == 'open' and o['type'].upper() in ['STOP_MARKET', 'TAKE_PROFIT_MARKET']:
+                        await self.client.exchange.cancel_order(o['id'], symbol)
+
+                # 5) Limpa estado interno de posição
+                if self.position_side[symbol] is not None:
+                    self.position_side[symbol] = None
+                    self.entry_price[symbol] = None
+                    self.quantity[symbol] = None
+                    self.unrealized_pnl[symbol] = 0
+
+                # 6) Zera IDs de SL, TP e timeframe de entrada
+                self.sl_order_id[symbol] = None
+                self.tp_order_id[symbol] = None
+                self.entry_tf[symbol] = None
+
+            # 7) Cancela quaisquer outras ordens “órfãs” (diferentes de SL/TP)
             for o in orders:
-                if o['status'] == 'open' and o['type'].upper() in ['STOP_MARKET', 'TAKE_PROFIT_MARKET']:
+                if o['status'] == 'open' and o['type'].upper() not in ['STOP_MARKET', 'TAKE_PROFIT_MARKET']:
                     await self.client.exchange.cancel_order(o['id'], symbol)
 
-            # 5) Limpa estado interno de posição
-            if self.position_side[symbol] is not None:
-                self.position_side[symbol] = None
-                self.entry_price[symbol] = None
-                self.quantity[symbol] = None
-                self.unrealized_pnl[symbol] = 0
-
-            # 6) Zera IDs de SL, TP e timeframe de entrada
-            self.sl_order_id[symbol] = None
-            self.tp_order_id[symbol] = None
-            self.entry_tf[symbol] = None
-
-        # 7) Cancela quaisquer outras ordens “órfãs” (diferentes de SL/TP)
-        for o in orders:
-            if o['status'] == 'open' and o['type'].upper() not in ['STOP_MARKET', 'TAKE_PROFIT_MARKET']:
-                await self.client.exchange.cancel_order(o['id'], symbol)
-
-    except Exception as e:
-        logger.error(f"Sync error {symbol}: {e}\n{traceback.format_exc()}")
+        except Exception as e:
+            logger.error(f"Sync error {symbol}: {e}\n{traceback.format_exc()}")
 
 
     async def validate_liquidity(self, symbol, qty):
@@ -433,7 +433,8 @@ class LiveMAStrategy:
             self.log_trade(symbol,'EXIT',entry,exit_price,result,'unknown')
             self.position_side[symbol]=None; self.entry_price[symbol]=None; self.quantity[symbol]=None; self.unrealized_pnl[symbol]=0
             self.sl_order_id[symbol]=None; self.tp_order_id[symbol]=None; self.entry_tf[symbol]=None
-        except: await self.sync_position(symbol)
+        except Exception:
+            await self.sync_position(symbol)
 
     def log_trade(self,symbol,trade_type,entry,exit_price,result,timeframe):
         row=[datetime.now().strftime('%Y-%m-%d %H:%M:%S'),symbol,timeframe,trade_type,entry,exit_price,((exit_price-entry)/entry*100 if trade_type=='EXIT' else 0),result]
@@ -448,7 +449,8 @@ class LiveMAStrategy:
             df=pd.read_csv('data/trade_log.csv'); df['timestamp']=pd.to_datetime(df['timestamp'])
             recent=df[df['timestamp']>=datetime.now()-timedelta(days=1)]
             return recent[recent['symbol']==symbol].to_dict('records') if symbol else recent.to_dict('records')
-        except: return []
+        except Exception:
+            return []
 
     async def calculate_qty(self,symbol,price):
         bal=await self.client.get_balance(); usdt=float(bal.get('USDT',{}).get('free',0))
