@@ -91,19 +91,21 @@ class LiveMAStrategy:
         if isinstance(kline, pd.DataFrame):
             if kline.empty:
                 return
-            row = kline.iloc[0]
+            new = kline.copy()
+            if not isinstance(new.iloc[0]["timestamp"], pd.Timestamp):
+                new["timestamp"] = pd.to_datetime(new["timestamp"], unit="ms")
         else:
-            row = kline
-        new = pd.DataFrame([
-            {
-                "timestamp": pd.to_datetime(row["timestamp"], unit="ms") if not isinstance(row["timestamp"], pd.Timestamp) else row["timestamp"],
-                "open": float(row["open"]),
-                "high": float(row["high"]),
-                "low": float(row["low"]),
-                "close": float(row["close"]),
-                "volume": float(row["volume"]),
-            }
-        ])
+            new = pd.DataFrame([
+                {
+                    "timestamp": pd.to_datetime(kline["timestamp"], unit="ms") if not isinstance(kline["timestamp"], pd.Timestamp) else kline["timestamp"],
+                    "open": float(kline["open"]),
+                    "high": float(kline["high"]),
+                    "low": float(kline["low"]),
+                    "close": float(kline["close"]),
+                    "volume": float(kline["volume"]),
+                }
+            ])
+        new[["open", "high", "low", "close", "volume"]] = new[["open", "high", "low", "close", "volume"]].astype(float)
         df = pd.concat([df, new]).drop_duplicates("timestamp").tail(60)
         self.data[symbol][timeframe] = df
 
@@ -314,7 +316,7 @@ class LiveMAStrategy:
             logger.error(f"Liquidity check failed for {symbol}: {e}")
             return False
 
-    def ai_accepts_trade(self, symbol, timeframe):
+    def ai_accepts_trade(self, symbol, timeframe, side):
         """Evaluate entry signal using the AI model."""
         try:
             df = self.data[symbol].get(timeframe, pd.DataFrame())
@@ -328,13 +330,15 @@ class LiveMAStrategy:
                 stoch_d_period=self.config.get('stoch_d_period', 3),
                 ema_short=self.config['indicators'][symbol].get('ema_short', 12),
                 ema_long=self.config['indicators'][symbol].get('ema_long', 26),
+                macd_fast=self.config['indicators'][symbol].get('macd_fast', 12),
+                macd_slow=self.config['indicators'][symbol].get('macd_slow', 26),
+                macd_signal=self.config['indicators'][symbol].get('macd_signal', 9),
             )
             features = feats.iloc[-1].to_dict()
-            macd, macdsignal, _ = self._calculate_macd(symbol, df)
-            features['macd'] = macd.iloc[-1]
-            features['macdsignal'] = macdsignal.iloc[-1]
 
             result = self.signal_engine.get_signal_for_timeframe(features, symbol=symbol, timeframe=timeframe)
+            if side == 'short':
+                return result['ok'] and result['confidence'] <= (1 - self.min_ai_confidence)
             return result['ok'] and result['confidence'] >= self.min_ai_confidence
         except Exception as e:
             logger.error(f"AI check failed for {symbol}: {e}")
@@ -349,7 +353,7 @@ class LiveMAStrategy:
         if not self.signal_priority:
             if not await self.validate_liquidity(symbol, qty):
                 return
-            if not self.ai_accepts_trade(symbol, tf):
+            if not self.ai_accepts_trade(symbol, tf, side):
                 logger.info(f"AI rejected trade for {symbol} {tf}")
                 return
         if qty < self.min_qty.get(symbol, 0):

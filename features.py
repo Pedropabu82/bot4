@@ -10,6 +10,9 @@ def extract_features(
     stoch_d_period: int = 3,
     ema_short: int = 9,
     ema_long: int = 21,
+    macd_fast: int = 12,
+    macd_slow: int = 26,
+    macd_signal: int = 9,
 ) -> pd.DataFrame:
     """Compute model features from OHLCV dataframe.
 
@@ -22,12 +25,21 @@ def extract_features(
         Period for the short exponential moving average.
     ema_long : int, optional
         Period for the long exponential moving average.
+    macd_fast : int, optional
+        Fast period for the MACD indicator.
+    macd_slow : int, optional
+        Slow period for the MACD indicator.
+    macd_signal : int, optional
+        Signal period for the MACD indicator.
     """
     features = pd.DataFrame()
     features['ema_short'] = talib.EMA(df['close'], timeperiod=ema_short)
     features['ema_long'] = talib.EMA(df['close'], timeperiod=ema_long)
     macd, macdsignal, _ = talib.MACD(
-        df['close'], fastperiod=12, slowperiod=26, signalperiod=9
+        df['close'],
+        fastperiod=macd_fast,
+        slowperiod=macd_slow,
+        signalperiod=macd_signal,
     )
     features['macd'] = macd
     features['macdsignal'] = macdsignal

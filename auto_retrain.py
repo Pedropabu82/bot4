@@ -78,8 +78,12 @@ def train_from_log(trade_log='data/trade_log.csv', config_file='config.json'):
             logger.warning(f"Dados vazios para {symbol} {timeframe}, pulando...")
             continue
 
-        ema_short = indicator_cfg.get(symbol, {}).get('ema_short', 9)
-        ema_long = indicator_cfg.get(symbol, {}).get('ema_long', 21)
+        cfg = indicator_cfg.get(symbol, {})
+        ema_short = cfg.get('ema_short', 9)
+        ema_long = cfg.get('ema_long', 21)
+        macd_fast = cfg.get('macd_fast', 12)
+        macd_slow = cfg.get('macd_slow', 26)
+        macd_signal = cfg.get('macd_signal', 9)
         feats = extract_features(
             df,
             bb_period=bb_period,
@@ -88,6 +92,9 @@ def train_from_log(trade_log='data/trade_log.csv', config_file='config.json'):
             stoch_d_period=stoch_d_period,
             ema_short=ema_short,
             ema_long=ema_long,
+            macd_fast=macd_fast,
+            macd_slow=macd_slow,
+            macd_signal=macd_signal,
         )
         if feats.empty:
             logger.warning(f"Features vazias para {symbol} {timeframe}, pulando...")
