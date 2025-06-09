@@ -25,9 +25,13 @@ async def start_streams(symbols, timeframes, strategy, valid_timeframes, config)
         "wss://stream.binancefuture.com/stream",
         "wss://fstream.binance.com/stream"
     ]
+    ws_tfs = config.get('ws_timeframes') or timeframes
+    if isinstance(ws_tfs, str):
+        ws_tfs = [ws_tfs]
+
     streams = [
         f"{symbol.lower()}@kline_{tf}" for symbol in symbols
-        for tf in (config.get('ws_timeframes', timeframes))
+        for tf in ws_tfs
     ] + [
         f"{symbol.lower()}@ticker" for symbol in symbols
     ]
