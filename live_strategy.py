@@ -352,45 +352,29 @@ class LiveMAStrategy:
             if not self.ai_accepts_trade(symbol, tf):
                 logger.info(f"AI rejected trade for {symbol} {tf}")
                 return
-        ob = await self.client.exchange.fetch_order_book(symbol, limit=5)
-        bid, ask = float(ob['bids'][0][0]), float(ob['asks'][0][0])
-        offset = self.maker_offset
-        if side == 'long':
-            price_target = bid * (1 + offset)
-            if price_target >= ask:
-                price_target = bid
-        else:
-            price_target = ask * (1 - offset)
-            if price_target <= bid:
-                price_target = ask
-        lim = round(price_target, self.price_precision[symbol])
         if qty < self.min_qty.get(symbol, 0):
             return
         try:
-            order = await self.client.exchange.create_limit_order(symbol, 'buy' if side == 'long' else 'sell', qty, lim, {'postOnly': True})
-            for _ in range(3):
-                await asyncio.sleep(5)
-                st = await self.client.exchange.fetch_order(order['id'], symbol)
-                if st['status'] in ['closed', 'FILLED']:
-                    self.position_side[symbol] = side
-                    self.entry_price[symbol] = float(st.get('price') or st.get('avgPrice'))
-                    self.quantity[symbol] = qty
-                    await self.set_sl(symbol)
-                    await self.set_tp(symbol)
-                    self.entry_tf[symbol] = tf
-                    self.daily_trades[symbol].append(datetime.now())
-                    self.cooldown[symbol] = datetime.now() + timedelta(minutes=self.calculate_cooldown(symbol, tf))
-                    self.log_trade(symbol, 'ENTRY', self.entry_price[symbol], 0, 'open', tf)
-                    return
-                if st['status'] == 'CANCELED':
-                    return
-            await self.client.exchange.cancel_order(order['id'], symbol)
+            order = await self.client.exchange.create_order(
+                symbol,
+                'MARKET',
+                'buy' if side == 'long' else 'sell',
+                qty,
+                None,
+                None,
+            )
+            self.position_side[symbol] = side
+            self.entry_price[symbol] = float(order.get('price') or order.get('avgPrice'))
+            self.quantity[symbol] = qty
+            await self.set_sl(symbol)
+            await self.set_tp(symbol)
+            self.entry_tf[symbol] = tf
+            self.daily_trades[symbol].append(datetime.now())
+            self.cooldown[symbol] = datetime.now() + timedelta(minutes=self.calculate_cooldown(symbol, tf))
+            self.log_trade(symbol, 'ENTRY', self.entry_price[symbol], 0, 'open', tf)
             return
         except ccxt.BaseError as e:
-            if 'code' in str(e) and '-5022' in str(e):
-                logger.warning(f"PostOnly order rejected for {symbol} ({side}) - order cancelled")
-            else:
-                logger.error(f"Failed to place limit order for {symbol}: {e}")
+            logger.error(f"Failed to place market order for {symbol}: {e}")
             return
 
     def calculate_cooldown(self, symbol, tf):
