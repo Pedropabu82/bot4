@@ -37,7 +37,8 @@ async def start_streams(symbols, timeframes, strategy, valid_timeframes, config)
         current_uri_index = 1
 
     exchange = ccxt.binance({'enableRateLimit': True})
-    exchange.set_sandbox_mode(True)
+    if config.get('testnet', True):
+        exchange.set_sandbox_mode(True)
 
     reconnect_delay = 5
     max_reconnect_delay = 120
