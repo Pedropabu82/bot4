@@ -39,7 +39,7 @@ class SignalEngine:
 
             proba = base_score
             ok = base_score >= min_score
-            decision = "✅" if ok else "❌"
+            decision = "OK" if ok else "FAIL"
 
             # Se modelo carregado, usa predição real
             if self.model:
@@ -56,7 +56,7 @@ class SignalEngine:
                 ]]
                 proba = self.model.predict_proba(features)[0][1]
                 ok = proba >= 0.5
-                decision = "✅" if ok else "❌"
+                decision = "OK" if ok else "FAIL"
 
             logger.info(f"[AI] {symbol or ''} {timeframe or ''} - proba: {proba:.4f} - decision: {decision}")
             return {"ok": ok, "confidence": round(proba, 4)}

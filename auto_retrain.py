@@ -62,7 +62,7 @@ def train_from_log(trade_log='data/trade_log.csv', config_file='config.json'):
     logger.info(f"Carregando {len(trades)} trades do log.")
 
     if len(trades) < 10:
-        logger.error("❌ ERRO: Menos de 10 trades disponíveis. Adicione mais dados para treino.")
+        logger.error("ERRO: Menos de 10 trades disponíveis. Adicione mais dados para treino.")
         return
 
     X, y = [], []
@@ -105,7 +105,7 @@ def train_from_log(trade_log='data/trade_log.csv', config_file='config.json'):
     unique_classes = set(y)
     logger.info(f"Classes encontradas no y: {unique_classes}")
     if len(unique_classes) < 2:
-        logger.error("❌ ERRO: Apenas uma classe detectada no vetor y. Adicione mais trades de tipos diferentes (win/loss).")
+        logger.error("ERRO: Apenas uma classe detectada no vetor y. Adicione mais trades de tipos diferentes (win/loss).")
         return
 
     df_X = pd.DataFrame(X)
@@ -115,7 +115,7 @@ def train_from_log(trade_log='data/trade_log.csv', config_file='config.json'):
     model = xgb.XGBClassifier(use_label_encoder=False, eval_metric='logloss', scale_pos_weight=weight_dict[1]/weight_dict[0])
     model.fit(df_X, y)
     joblib.dump(model, "model_xgb.pkl")
-    logger.info("✅ Modelo treinado e salvo como model_xgb.pkl")
+    logger.info("Modelo treinado e salvo como model_xgb.pkl")
 
 if __name__ == "__main__":
     train_from_log()
