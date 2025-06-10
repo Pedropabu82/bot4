@@ -129,8 +129,26 @@ class AsyncMultiMAStrategy:
         await self.open_position(symbol, direction, price, qty, tf)
 
     async def open_position(self, symbol: str, side: str, price: float, qty: float, tf: str):
-        logger.info("OPEN %s %s qty %.6f @ %.2f", side, symbol, qty, price)
-        # Actual order logic would go here
+        """Open a market position and log the trade."""
+        try:
+            order = await self.client.exchange.create_order(
+                symbol,
+                "MARKET",
+                "buy" if side == "long" else "sell",
+                qty,
+                None,
+                None,
+            )
+            logger.info(
+                "Opened %s position on %s qty %.6f @ %.2f (id=%s)",
+                side,
+                symbol,
+                qty,
+                price,
+                order.get("id"),
+            )
+        except Exception as exc:
+            logger.error("Failed to open position on %s: %s", symbol, exc)
 
     async def run(self):
         while True:
