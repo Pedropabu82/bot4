@@ -368,7 +368,14 @@ class LiveMAStrategy:
                 None,
             )
             self.position_side[symbol] = side
-            self.entry_price[symbol] = float(order.get('price') or order.get('avgPrice'))
+            self.entry_price[symbol] = float(order.get('price') or order.get('avgPrice') or 0)
+            # Fetch the order again if no fill price was returned
+            if not self.entry_price[symbol]:
+                try:
+                    info = await self.client.exchange.fetch_order(order.get('id'), symbol)
+                    self.entry_price[symbol] = float(info.get('avgPrice') or info.get('price') or 0)
+                except Exception as e:
+                    logger.warning(f"Failed fetching order price for {symbol}: {e}")
             self.quantity[symbol] = qty
             await self.set_sl(symbol)
             await self.set_tp(symbol)

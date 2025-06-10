@@ -79,6 +79,8 @@ Modes available via the `mode` key in `config.json`:
 * `ws_timeframes` - list of chart intervals to subscribe to via WebSocket; defaults to the strategy timeframes when unset or `null`
 * Spread and depth are automatically checked before orders to avoid poor fills
 * The AI model expects the following features: `ema_short`, `ema_long`, `macd`, `macdsignal`, `rsi`, `adx`, `obv`, `atr`, `volume`, `bb_upper`, `bb_middle`, `bb_lower`, `stoch_k`, `stoch_d`, `vwap`
+* If a file named `model_xgb.pkl` is present in the project root, it is loaded automatically so the bot can use the pre-trained model without additional training.
+* Stop-loss and take-profit percentages are configured via the `tp` and `sl` dictionaries in `config.json`. When a market order is filled the strategy immediately sends corresponding `STOP_MARKET` and `TAKE_PROFIT_MARKET` orders.
 
 ### Indicators
 
