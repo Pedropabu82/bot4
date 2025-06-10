@@ -19,12 +19,14 @@ class LiveMAStrategy:
         self.client = client
         self.config = config
         self.signal_priority = config.get('signal_priority', False)
+        ind_cfg = config.get('indicators')
         try:
-            self.symbols = list(config['indicators'].keys())
-            if not self.symbols:
-                raise ValueError("No symbols specified in config['indicators']")
+            if isinstance(ind_cfg, dict) and ind_cfg:
+                self.symbols = list(ind_cfg.keys())
+            else:
+                raise KeyError
         except KeyError:
-            logger.error("Missing 'indicators' key in config.json")
+            logger.error("Missing or invalid 'indicators' key in config.json")
             raise ValueError("Config must include 'indicators' with at least one symbol")
         self.leverage = {symbol: config.get('leverage', 10) for symbol in self.symbols}
         self.timeframes = ['5m', '15m', '30m', '1h', '4h', '1d']
