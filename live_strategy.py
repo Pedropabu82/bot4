@@ -4,7 +4,8 @@ import pandas as pd
 import ccxt.async_support as ccxt
 import asyncio
 import logging
-import talib
+import ta.trend as trend
+import ta.momentum as momentum
 from datetime import datetime, timedelta
 import traceback
 from auto_retrain import train_from_log
@@ -119,16 +120,19 @@ class LiveMAStrategy:
         fast = ind.get("macd_fast", 12)
         slow = ind.get("macd_slow", 26)
         signal = ind.get("macd_signal", 9)
-        return talib.MACD(
-            df["close"], fastperiod=fast, slowperiod=slow, signalperiod=signal
+        macd = trend.macd(df["close"], window_fast=fast, window_slow=slow)
+        signal_line = trend.macd_signal(
+            df["close"], window_fast=fast, window_slow=slow, window_sign=signal
         )
+        hist = macd - signal_line
+        return macd, signal_line, hist
 
     def get_signal_for_timeframe(self, symbol, timeframe):
         df = self.data[symbol].get(timeframe, pd.DataFrame())
         if len(df) < 30:
             return None
-        ema_s = talib.EMA(df['close'], timeperiod=self.config['indicators'][symbol].get('ema_short', 12))
-        ema_l = talib.EMA(df['close'], timeperiod=self.config['indicators'][symbol].get('ema_long', 26))
+        ema_s = trend.ema_indicator(df['close'], window=self.config['indicators'][symbol].get('ema_short', 12))
+        ema_l = trend.ema_indicator(df['close'], window=self.config['indicators'][symbol].get('ema_long', 26))
         long = short = 0
         if ema_s.iloc[-1] > ema_l.iloc[-1]:
             long += 2
@@ -139,12 +143,12 @@ class LiveMAStrategy:
             long += 1
         elif macd.iloc[-1] < signal.iloc[-1]:
             short += 1
-        rsi = talib.RSI(df['close'], timeperiod=self.config['indicators'][symbol].get('rsi', 14))
+        rsi = momentum.rsi(df['close'], window=self.config['indicators'][symbol].get('rsi', 14))
         if rsi.iloc[-1] > 70:
             short += 1
         elif rsi.iloc[-1] < 30:
             long += 1
-        adx = talib.ADX(df['high'], df['low'], df['close'], 14)
+        adx = trend.adx(df['high'], df['low'], df['close'], window=14)
         if adx.iloc[-1] > 25:
             if ema_s.iloc[-1] > ema_l.iloc[-1]:
                 long += 1.5
@@ -177,8 +181,8 @@ class LiveMAStrategy:
         if len(df) < 30:
             return 0
         long = short = 0
-        ema_s = talib.EMA(df['close'], timeperiod=self.config['indicators'][symbol].get('ema_short', 12))
-        ema_l = talib.EMA(df['close'], timeperiod=self.config['indicators'][symbol].get('ema_long', 26))
+        ema_s = trend.ema_indicator(df['close'], window=self.config['indicators'][symbol].get('ema_short', 12))
+        ema_l = trend.ema_indicator(df['close'], window=self.config['indicators'][symbol].get('ema_long', 26))
         if ema_s.iloc[-1] > ema_l.iloc[-1]:
             long += 2
         elif ema_s.iloc[-1] < ema_l.iloc[-1]:
@@ -188,12 +192,12 @@ class LiveMAStrategy:
             long += 1
         elif macd.iloc[-1] < signal.iloc[-1]:
             short += 1
-        rsi = talib.RSI(df['close'], timeperiod=self.config['indicators'][symbol].get('rsi', 14))
+        rsi = momentum.rsi(df['close'], window=self.config['indicators'][symbol].get('rsi', 14))
         if rsi.iloc[-1] > 70:
             short += 1
         elif rsi.iloc[-1] < 30:
             long += 1
-        adx = talib.ADX(df['high'], df['low'], df['close'], 14)
+        adx = trend.adx(df['high'], df['low'], df['close'], window=14)
         if adx.iloc[-1] > 25:
             if ema_s.iloc[-1] > ema_l.iloc[-1]:
                 long += 1.5

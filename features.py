@@ -1,5 +1,8 @@
 import pandas as pd
-import talib
+import ta.trend as trend
+import ta.momentum as momentum
+import ta.volume as volume
+import ta.volatility as volatility
 
 
 def extract_features(
@@ -32,45 +35,38 @@ def extract_features(
     macd_signal : int, optional
         Signal period for the MACD indicator.
     """
-    features = pd.DataFrame()
-    features['ema_short'] = talib.EMA(df['close'], timeperiod=ema_short)
-    features['ema_long'] = talib.EMA(df['close'], timeperiod=ema_long)
-    macd, macdsignal, _ = talib.MACD(
-        df['close'],
-        fastperiod=macd_fast,
-        slowperiod=macd_slow,
-        signalperiod=macd_signal,
+    features = pd.DataFrame(index=df.index)
+    features['ema_short'] = trend.ema_indicator(df['close'], window=ema_short)
+    features['ema_long'] = trend.ema_indicator(df['close'], window=ema_long)
+    features['macd'] = trend.macd(df['close'], window_fast=macd_fast,
+                                  window_slow=macd_slow)
+    features['macdsignal'] = trend.macd_signal(
+        df['close'], window_slow=macd_slow,
+        window_fast=macd_fast, window_sign=macd_signal
     )
-    features['macd'] = macd
-    features['macdsignal'] = macdsignal
-    features['rsi'] = talib.RSI(df['close'], timeperiod=14)
-    features['adx'] = talib.ADX(
-        df['high'], df['low'], df['close'], timeperiod=14
-    )
-    features['obv'] = talib.OBV(df['close'], df['volume'])
-    features['atr'] = talib.ATR(
-        df['high'], df['low'], df['close'], timeperiod=14
+    features['rsi'] = momentum.rsi(df['close'], window=14)
+    features['adx'] = trend.adx(df['high'], df['low'], df['close'], window=14)
+    features['obv'] = volume.on_balance_volume(df['close'], df['volume'])
+    features['atr'] = volatility.average_true_range(
+        df['high'], df['low'], df['close'], window=14
     )
 
-    upper, middle, lower = talib.BBANDS(
-        df['close'], timeperiod=bb_period, nbdevup=bb_k, nbdevdn=bb_k, matype=0
+    features['bb_upper'] = volatility.bollinger_hband(
+        df['close'], window=bb_period, window_dev=bb_k
     )
-    features['bb_upper'] = upper
-    features['bb_middle'] = middle
-    features['bb_lower'] = lower
+    features['bb_middle'] = volatility.bollinger_mavg(
+        df['close'], window=bb_period
+    )
+    features['bb_lower'] = volatility.bollinger_lband(
+        df['close'], window=bb_period, window_dev=bb_k
+    )
 
-    slowk, slowd = talib.STOCH(
-        df['high'],
-        df['low'],
-        df['close'],
-        fastk_period=stoch_k_period,
-        slowk_period=3,
-        slowk_matype=0,
-        slowd_period=stoch_d_period,
-        slowd_matype=0,
+    stoch = momentum.StochasticOscillator(
+        df['close'], df['high'], df['low'],
+        window=stoch_k_period, smooth_window=stoch_d_period
     )
-    features['stoch_k'] = slowk
-    features['stoch_d'] = slowd
+    features['stoch_k'] = stoch.stoch()
+    features['stoch_d'] = stoch.stoch_signal()
 
     typical_price = (df['high'] + df['low'] + df['close']) / 3
     cumulative_vp = (typical_price * df['volume']).cumsum()
